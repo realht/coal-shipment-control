@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Предпросмотр импорта — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Импорт Excel — предпросмотр{% endblock %}
+
+{% block content %}
+<div class="space-y-4"
+     data-import-preview
+     data-page-size="{{ import_preview_page_size }}"
+     data-shipment-type="{{ shipment_type }}"
+     data-auto-detail-url-template="{{ auto_detail_url_template }}"
+     data-rail-detail-url-template="{{ rail_detail_url_template }}">
+
+    <!-- Сводка -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+            <div class="text-2xl font-bold text-slate-700 dark:text-slate-200">{{ total }}</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Всего строк</div>
+        </div>
+        <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-700 p-4 text-center">
+            <div class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{{ valid_count }}</div>
+            <div class="text-xs text-emerald-600 dark:text-emerald-500 mt-1">Готово к импорту</div>
+        </div>
+        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700 p-4 text-center">
+            <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">{{ duplicate_count }}</div>
+            <div class="text-xs text-amber-600 dark:text-amber-500 mt-1">Дублей</div>
+        </div>
+        <div class="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-700 p-4 text-center">
+            <div class="text-2xl font-bold text-red-700 dark:text-red-400">{{ error_count }}</div>
+            <div class="text-xs text-red-600 dark:text-red-500 mt-1">Ошибок</div>
+        </div>
+    </div>
+
+    <!-- Файл и тип -->
+    <div class="text-xs text-slate-500 dark:text-slate-400">
+        Файл: <span class="font-medium text-slate-700 dark:text-slate-300">{{ filename }}</span> &mdash;
+        {% if shipment_type == "auto" %}Автоотгрузки{% else %}ЖД-отгрузки{% endif %}
+    </div>
+
+    <div class="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-xs text-amber-800 dark:text-amber-200">
+        Частичный режим: будут сохранены только выбранные строки из блока «Готово к импорту». Дубли, строки с ошибками и снятые строки попадут в детальный отчёт как пропущенные.
+    </div>
+
+    {% if valid_count == 0 and duplicate_count == 0 %}
+    <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-xl px-5 py-4 text-sm text-red-700 dark:text-red-300">
+        Нет строк для импорта. Проверьте файл и ошибки ниже.
+    </div>
+    {% endif %}
+
+    <!-- Форма импорта -->
+    {% if valid_count %}
+    <form method="post" id="import-form">
+        {% csrf_token %}
+        <input type="hidden" name="selection_submitted" value="1">
+        <input type="hidden" name="t" value="{{ import_token }}">
+        <div id="import-selected-inputs"></div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-4">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Готово к импорту ({{ valid_count }})</h2>
+                <label class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+                    <input type="checkbox" id="select-all" class="rounded" checked>
+                    Выбрать все
+                </label>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-xs">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                        <tr>
+                            <th class="px-3 py-2 text-left w-8">#</th>
+                            <th class="px-3 py-2 text-left w-8"></th>
+                            {% if shipment_type == "auto" %}
+                            <th class="px-3 py-2 text-left">Дата</th>
+                            <th class="px-3 py-2 text-left">Объект</th>
+                            <th class="px-3 py-2 text-left">Марка</th>
+                            <th class="px-3 py-2 text-left">Кол-во</th>
+                            <th class="px-3 py-2 text-left">База</th>
+                            <th class="px-3 py-2 text-left">ТТН</th>
+                            {% else %}
+                            <th class="px-3 py-2 text-left">Дата</th>
+                            <th class="px-3 py-2 text-left">Вагон</th>
+                            <th class="px-3 py-2 text-left">Марка</th>
+                            <th class="px-3 py-2 text-left">Получатель</th>
+                            <th class="px-3 py-2 text-left">Объём</th>
+                            <th class="px-3 py-2 text-left">Станция назн.</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody id="import-valid-body" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                </table>
+            </div>
+            <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <button type="button" data-import-prev="valid" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Назад</button>
+                <span data-import-page-label="valid"></span>
+                <button type="button" data-import-next="valid" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Вперёд</button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 mb-6">
+            <button type="submit"
+                    class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                Импортировать выбранные
+            </button>
+            <a href="{% url 'imports:upload' %}?type={{ shipment_type }}"
+               class="px-5 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                Загрузить другой файл
+            </a>
+        </div>
+        <div id="import-empty-warning" class="hidden mb-4 px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-sm">
+            Выберите хотя бы одну строку для импорта.
+        </div>
+    </form>
+    {% endif %}
+
+    <!-- Дубли -->
+    {% if duplicate_count %}
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-700 overflow-hidden mb-4">
+        <div class="px-5 py-3 border-b border-amber-100 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
+            <h2 class="text-sm font-semibold text-amber-700 dark:text-amber-400">Возможные дубли ({{ duplicate_count }}) — не будут импортированы</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <tr>
+                        <th class="px-3 py-2 text-left">Строка</th>
+                        {% if shipment_type == "auto" %}
+                        <th class="px-3 py-2 text-left">Дата</th>
+                        <th class="px-3 py-2 text-left">Объект</th>
+                        <th class="px-3 py-2 text-left">Марка</th>
+                        <th class="px-3 py-2 text-left">Кол-во</th>
+                        {% else %}
+                        <th class="px-3 py-2 text-left">Дата</th>
+                        <th class="px-3 py-2 text-left">Вагон</th>
+                        <th class="px-3 py-2 text-left">Получатель</th>
+                        <th class="px-3 py-2 text-left">Объём</th>
+                        {% endif %}
+                        <th class="px-3 py-2 text-left">Существующие</th>
+                    </tr>
+                </thead>
+                <tbody id="import-duplicate-body" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+            </table>
+        </div>
+        <div class="px-5 py-3 border-t border-amber-100 dark:border-amber-700 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <button type="button" data-import-prev="duplicates" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Назад</button>
+            <span data-import-page-label="duplicates"></span>
+            <button type="button" data-import-next="duplicates" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Вперёд</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ошибки -->
+    {% if error_count %}
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-red-100 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
+            <h2 class="text-sm font-semibold text-red-700 dark:text-red-400">Строки с ошибками ({{ error_count }}) — не будут импортированы</h2>
+        </div>
+        <div id="import-error-list" class="divide-y divide-slate-100 dark:divide-slate-700"></div>
+        <div class="px-5 py-3 border-t border-red-100 dark:border-red-700 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <button type="button" data-import-prev="errors" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Назад</button>
+            <span data-import-page-label="errors"></span>
+            <button type="button" data-import-next="errors" class="px-3 py-1 border border-slate-200 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">Вперёд</button>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{{ preview_rows|json_script:"import-preview-data" }}
+<script src="{% static 'js/import_preview.js' %}"></script>
+{% endblock %}

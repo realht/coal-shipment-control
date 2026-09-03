@@ -1,0 +1,7 @@
+/artifacts/
+/node_modules/
+/test-results/
+/playwright-report/
+/fixtures/*.xlsx
+/fixtures/*.png
+/*.sqlite3

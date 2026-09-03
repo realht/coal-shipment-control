@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load coal_tags %}
+
+{% block title %}Журнал изменений — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Журнал изменений{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="flex flex-wrap items-end gap-3 mb-5">
+    <form method="get" class="flex flex-wrap items-end gap-2 flex-1">
+        <select name="entity_type"
+                class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <option value="">— Тип записи —</option>
+            {% for val, label in entity_choices %}
+                <option value="{{ val }}" {% if entity_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="action"
+                class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <option value="">— Действие —</option>
+            {% for val, label in action_choices %}
+                <option value="{{ val }}" {% if action == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="source"
+                class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <option value="">— Источник —</option>
+            {% for val, label in source_choices %}
+                <option value="{{ val }}" {% if source == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="user_id"
+                class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <option value="">— Пользователь —</option>
+            {% for u in users %}
+                <option value="{{ u.pk }}" {% if user_id == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.username }}{% if not u.is_active %} (неактивен){% endif %}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" aria-label="Дата: с"
+               class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+        <input type="date" name="date_to" value="{{ date_to }}" aria-label="Дата: по"
+               class="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+        <button type="submit"
+                class="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">
+            Найти
+        </button>
+        {% if entity_type or action or source or user_id or date_from or date_to %}
+        <a href="{% url 'audit:list' %}"
+           class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            Сбросить
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+{% if date_from_invalid or date_to_invalid %}
+<div class="mb-4 px-4 py-2 text-sm rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+    Некорректная дата в фильтре — она проигнорирована.
+</div>
+{% endif %}
+
+<!-- Table -->
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    {% if logs %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Дата и время</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Тип</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">ID</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Действие</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Источник</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Пользователь</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">IP</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for log in logs %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs">{{ log.created_at }}</td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{{ log.get_entity_type_display }}</span>
+                    </td>
+                    <td class="px-4 py-3 font-mono text-slate-600 dark:text-slate-300 text-xs">{{ log.entity_id }}</td>
+                    <td class="px-4 py-3">
+                        {% if log.action == "create" %}
+                        <span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400">{{ log.get_action_display }}</span>
+                        {% elif log.action == "delete" %}
+                        <span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">{{ log.get_action_display }}</span>
+                        {% elif log.action == "update" %}
+                        <span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">{{ log.get_action_display }}</span>
+                        {% else %}
+                        <span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400">{{ log.get_action_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">{{ log.get_source_display }}</td>
+                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300 text-xs">{{ log.user|default:"—" }}</td>
+                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs font-mono">{{ log.ip_address|default:"—" }}</td>
+                    <td class="px-4 py-3">
+                        <a href="{% url 'audit:detail' log.pk %}"
+                           class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Детали</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}{% pagination page_obj %}{% endif %}
+
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
+        <svg class="w-12 h-12 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p class="text-sm">Записи не найдены</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

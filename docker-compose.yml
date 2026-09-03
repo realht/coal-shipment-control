@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    entrypoint: []
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        python manage.py migrate --noinput &&
+        python manage.py seed_portfolio_demo &&
+        python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./runtime/uploads:/app/uploads
+      - ./runtime/backups:/app/backups

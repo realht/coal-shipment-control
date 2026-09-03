@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load coal_tags %}
+
+{% block title %}Автоотгрузка #{{ shipment.pk }} — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Автоотгрузка #{{ shipment.pk }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl space-y-5">
+
+    <!-- Actions bar -->
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'auto:list' %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            К списку
+        </a>
+        {% if can_change %}
+        <a href="{% url 'auto:update' shipment.pk %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Редактировать
+        </a>
+        {% endif %}
+        {% if can_delete %}
+        <a href="{% url 'auto:delete' shipment.pk %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Удалить
+        </a>
+        {% endif %}
+        {% if can_audit %}
+        <a href="{% url 'audit:list' %}?entity_type=auto_shipment&entity_id={{ shipment.pk }}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            История
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Fields card -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Данные отгрузки</h2>
+        </div>
+        <dl class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% if field_config.shipment_date.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Дата отгрузки</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.shipment_date }}</dd>
+            </div>{% endif %}
+            {% if field_config.customer_object.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Объект</dt>
+                <dd class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ shipment.customer_object }}</dd>
+            </div>{% endif %}
+            {% if field_config.vehicle_number.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Машина</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.vehicle_number|default:"—" }}</dd>
+            </div>{% endif %}
+            {% if field_config.driver_name.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Водитель</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.driver_name|default:"—" }}</dd>
+            </div>{% endif %}
+            {% if field_config.ttn_number.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Номер ТТН</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.ttn_number|default:"—" }}</dd>
+            </div>{% endif %}
+            {% if field_config.coal_grade.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Марка угля</dt>
+                <dd class="text-sm"><span class="inline-flex px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">{{ shipment.coal_grade }}</span></dd>
+            </div>{% endif %}
+            {% if field_config.quantity.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Количество</dt>
+                <dd class="text-sm font-mono text-slate-800 dark:text-slate-200">{{ shipment.quantity }} т</dd>
+            </div>{% endif %}
+            {% if field_config.carrier.visible != False %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Перевозчик</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.carrier|default:"—" }}</dd>
+            </div>{% endif %}
+            {% if field_config.comment.visible != False and shipment.comment %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Комментарий</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.comment }}</dd>
+            </div>{% endif %}
+            {% if field_config.sub_object.visible != False and shipment.sub_object %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Подобъект</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.sub_object }}</dd>
+            </div>{% endif %}
+            {% if field_config.base_code.visible != False and shipment.base_code %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">База</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.base_code }}</dd>
+            </div>{% endif %}
+            {% if field_config.upd_number.visible != False and shipment.upd_number %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">УПД</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.upd_number }}</dd>
+            </div>{% endif %}
+            {% if field_config.balance_note.visible != False and shipment.balance_note %}
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Остатки</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ shipment.balance_note }}</dd>
+            </div>{% endif %}
+            {% if can_audit %}
+            <div class="flex items-start px-5 py-3 gap-4 bg-slate-50/50 dark:bg-slate-700/20">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-400 uppercase tracking-wide pt-0.5">Создана</dt>
+                <dd class="text-xs text-slate-500 dark:text-slate-400">{{ shipment.created_at }} · {{ shipment.created_by }}</dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4 bg-slate-50/50 dark:bg-slate-700/20">
+                <dt class="w-44 shrink-0 text-xs font-semibold text-slate-400 uppercase tracking-wide pt-0.5">Изменена</dt>
+                <dd class="text-xs text-slate-500 dark:text-slate-400">{{ shipment.updated_at }} · {{ shipment.updated_by }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+    </div>
+
+    <!-- Documents -->
+    {% if can_view_doc %}
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Документы</h2>
+            {% if can_upload %}
+            <a href="{% url 'documents:upload' 'auto' shipment.pk %}"
+               class="flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Прикрепить
+            </a>
+            {% endif %}
+        </div>
+        {% if documents %}
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for doc in documents %}
+            <div class="flex items-center gap-3 px-5 py-3">
+                <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div class="flex-1 min-w-0">
+                    <a href="{% url 'documents:serve' doc.pk %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline truncate block">{{ doc.original_file_name }}</a>
+                    <p class="text-xs text-slate-400">{{ doc.get_document_type_display }} · {{ doc.file_size|filesizeformat }} · {{ doc.uploaded_at|date:"d.m.Y H:i" }} · {{ doc.uploaded_by }}</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    {% if can_change_doc %}
+                    <a href="{% url 'documents:edit' doc.pk %}"
+                       class="px-2.5 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md transition-colors">
+                        Изменить
+                    </a>
+                    {% endif %}
+                    {% if can_delete_doc %}
+                    <a href="{% url 'documents:delete' doc.pk %}"
+                       class="px-2.5 py-1 text-xs font-medium text-red-500 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors">
+                        Удалить
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="px-5 py-4 text-sm text-slate-400 dark:text-slate-500">Документы не прикреплены.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if can_audit and audit_log %}
+    <!-- Audit history -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">История изменений</h2>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for entry in audit_log %}
+            <div class="px-5 py-3">
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="text-xs font-medium px-2 py-0.5 rounded
+                        {% if entry.action == 'create' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300
+                        {% elif entry.action == 'update' %}bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
+                        {% elif entry.action == 'delete' %}bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                        {% elif entry.action == 'restore' %}bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                        {% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">
+                        {{ entry.get_action_display }}
+                    </span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ entry.created_at|date:"d.m.Y H:i" }} · {{ entry.user }}</span>
+                </div>
+                {% if entry.action == 'update' and entry.old_values and entry.new_values %}
+                <div class="mt-1 space-y-0.5">
+                    {% for key, new_val in entry.new_values.items %}
+                    {% with old_val=entry.old_values|get_item:key %}
+                    {% if new_val != old_val %}
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        <span class="text-slate-400">{{ key }}:</span>
+                        <span class="line-through text-red-400">{{ old_val }}</span>
+                        → <span class="text-emerald-600 dark:text-emerald-400">{{ new_val }}</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

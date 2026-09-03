@@ -1,0 +1,15 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["*/migrations/*", ".tmp", "staticfiles", "uploads", "media"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/settings/*.py" = ["F401", "F403"]
+"**/tests*.py" = ["E401", "E741", "F841", "F401"]
+"**/conftest.py" = ["E501"]
+# system_ops — пакет-фасад: __init__ реэкспортирует контракт из сабмодулей.
+"**/system_ops/__init__.py" = ["F401"]

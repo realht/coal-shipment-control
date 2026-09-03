@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Детали импорта — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Детали импорта{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    {% if log.status == "success" %}
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400">Успешно</span>
+                    {% elif log.status == "partial" %}
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">Частично</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">Ошибка</span>
+                    {% endif %}
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ log.get_shipment_type_display }}</span>
+                </div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ log.filename }} · {{ log.created_at|date:"d.m.Y H:i" }} · {{ log.created_by.get_full_name|default:log.created_by.username|default:"—" }}
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                {% if log.shipment_type == "auto" %}
+                <a href="{% url 'auto:list' %}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">К автоотгрузкам</a>
+                {% else %}
+                <a href="{% url 'rail:list' %}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">К ЖД-отгрузкам</a>
+                {% endif %}
+                <a href="{% url 'imports:log' %}" class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">Журнал</a>
+            </div>
+        </div>
+
+        {% if log.status == "partial" %}
+        <div class="mt-4 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-xs text-amber-800 dark:text-amber-200">
+            Импорт выполнен в частичном режиме: успешные выбранные строки сохранены, строки с ошибками, дубли и снятые строки пропущены.
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mt-5">
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
+                <div class="text-lg font-bold text-slate-700 dark:text-slate-200">{{ log.total_rows }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">Всего</div>
+            </div>
+            <div class="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3">
+                <div class="text-lg font-bold text-emerald-700 dark:text-emerald-400">{{ log.imported_rows }}</div>
+                <div class="text-xs text-emerald-600 dark:text-emerald-500">Создано</div>
+            </div>
+            <div class="rounded-lg bg-sky-50 dark:bg-sky-900/20 px-4 py-3">
+                <div class="text-lg font-bold text-sky-700 dark:text-sky-400">{{ log.updated_rows }}</div>
+                <div class="text-xs text-sky-600 dark:text-sky-500">Обновлено</div>
+            </div>
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
+                <div class="text-lg font-bold text-slate-700 dark:text-slate-200">{{ log.skipped_rows }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">Пропущено</div>
+            </div>
+            <div class="rounded-lg bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
+                <div class="text-lg font-bold text-amber-700 dark:text-amber-400">{{ log.duplicate_rows }}</div>
+                <div class="text-xs text-amber-600 dark:text-amber-500">Дублей</div>
+            </div>
+            <div class="rounded-lg bg-red-50 dark:bg-red-900/20 px-4 py-3">
+                <div class="text-lg font-bold text-red-700 dark:text-red-400">{{ log.error_rows }}</div>
+                <div class="text-xs text-red-600 dark:text-red-500">Ошибок</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <tr>
+                        <th class="px-3 py-2 text-left">Строка</th>
+                        <th class="px-3 py-2 text-left">Статус</th>
+                        {% if log.shipment_type == "auto" %}
+                        <th class="px-3 py-2 text-left">Дата</th>
+                        <th class="px-3 py-2 text-left">Объект</th>
+                        <th class="px-3 py-2 text-left">Марка</th>
+                        <th class="px-3 py-2 text-left">Кол-во</th>
+                        {% else %}
+                        <th class="px-3 py-2 text-left">Дата</th>
+                        <th class="px-3 py-2 text-left">Вагон</th>
+                        <th class="px-3 py-2 text-left">Получатель</th>
+                        <th class="px-3 py-2 text-left">Объём</th>
+                        {% endif %}
+                        <th class="px-3 py-2 text-left">Сообщения</th>
+                        <th class="px-3 py-2 text-left">Запись</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for row in log.row_results.all %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                        <td class="px-3 py-2 font-medium text-slate-500 dark:text-slate-400">{{ row.row_num }}</td>
+                        <td class="px-3 py-2">
+                            {% if row.status == "created" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400">Создано</span>
+                            {% elif row.status == "updated" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400">Обновлено</span>
+                            {% elif row.status == "skipped" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Пропущено</span>
+                            {% elif row.status == "duplicate" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">Дубль</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">Ошибка</span>
+                            {% endif %}
+                        </td>
+                        {% if log.shipment_type == "auto" %}
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ row.source_data.shipment_date|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300 max-w-xs truncate">{{ row.source_data.customer_object|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300">{{ row.source_data.coal_grade|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300">{{ row.source_data.quantity|default:"—" }}</td>
+                        {% else %}
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ row.source_data.departure_date|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300">{{ row.source_data.wagon_number|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300 max-w-xs truncate">{{ row.source_data.receiver|default:"—" }}</td>
+                        <td class="px-3 py-2 text-slate-600 dark:text-slate-300">{{ row.source_data.volume|default:"—" }}</td>
+                        {% endif %}
+                        <td class="px-3 py-2 text-slate-500 dark:text-slate-400 max-w-sm">
+                            {% if row.messages %}
+                            <ul class="space-y-0.5">
+                                {% for message in row.messages %}
+                                <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2">
+                            {% if row.created_object_id %}
+                                {% if log.shipment_type == "auto" %}
+                                <a href="{% url 'auto:detail' row.created_object_id %}" class="text-brand-600 dark:text-brand-400 hover:underline">{{ row.created_object_label }}</a>
+                                {% else %}
+                                <a href="{% url 'rail:detail' row.created_object_id %}" class="text-brand-600 dark:text-brand-400 hover:underline">{{ row.created_object_label }}</a>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-slate-400 dark:text-slate-500">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                            Детали строк очищены по сроку хранения; агрегатные итоги импорта сохранены.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

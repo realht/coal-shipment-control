@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Редактировать «{{ obj.name }}» — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Редактировать значение справочника{% endblock %}
+
+{% block content %}
+<div class="max-w-lg space-y-4">
+
+    <div class="flex items-center gap-2">
+        <a href="{% url 'catalogs:values' catalog_type %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            К справочнику
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">{{ label }} — {{ entity_label }}</h2>
+        </div>
+        <form method="post" class="px-5 py-5 space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                    Текущее значение
+                </label>
+                <p class="text-sm text-slate-700 dark:text-slate-200 font-medium">{{ obj.name }}</p>
+            </div>
+
+            <div>
+                <label for="id_name" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                    Новое название <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="id_name" name="name" value="{{ obj.name }}" required
+                       class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+
+            {% if shipment_count > 0 %}
+            <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-lg">
+                <div class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                    <div class="flex-1">
+                        <p class="text-sm text-amber-700 dark:text-amber-400 mb-2">
+                            Это значение используется в <strong>{{ shipment_count }}</strong> {{ shipment_word }} ({{ entity_label }}).
+                        </p>
+                        <label class="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400 cursor-pointer">
+                            <input type="checkbox" name="update_shipments" value="1"
+                                   class="rounded border-amber-400 text-brand-600 focus:ring-brand-500">
+                            Обновить существующие отгрузки с этим значением
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-xs text-slate-400 dark:text-slate-500">Значение не используется ни в одной отгрузке.</p>
+            {% endif %}
+
+            <div class="flex items-center gap-3 pt-1">
+                <button type="submit"
+                        class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    Сохранить
+                </button>
+                <a href="{% url 'catalogs:values' catalog_type %}"
+                   class="px-5 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

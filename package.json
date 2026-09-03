@@ -1,0 +1,12 @@
+{
+  "name": "coal-shipments-frontend",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./app/static/css/tailwind.src.css -o ./app/static/css/tailwind.css --minify",
+    "check:css": "node ./scripts/check-css-drift.mjs",
+    "watch:css": "tailwindcss -i ./app/static/css/tailwind.src.css -o ./app/static/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

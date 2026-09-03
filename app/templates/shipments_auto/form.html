@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static coal_tags %}
+
+{% block title %}{{ title }} — Учёт отгрузок угля{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if object.pk %}<input type="hidden" name="updated_at_token" value="{{ object.updated_at.isoformat }}">{% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 text-sm">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-4">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+                <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Основные поля</h2>
+            </div>
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for field in main_fields %}
+                {% if field.name|endswith:"_select" %}
+                <div class="{% if field.name == 'comment_select' %}sm:col-span-2{% endif %}">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    <div class="[&>select]:w-full [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:rounded-lg [&>select]:border [&>select]:border-slate-200 dark:[&>select]:border-slate-600 [&>select]:bg-white dark:[&>select]:bg-slate-700 [&>select]:text-slate-800 dark:[&>select]:text-slate-100 [&>input]:w-full [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:rounded-lg [&>input]:border [&>input]:border-slate-200 dark:[&>input]:border-slate-600 [&>input]:bg-white dark:[&>input]:bg-slate-700 [&>input]:text-slate-800 dark:[&>input]:text-slate-100 [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-brand-400 [&>input]:mt-2">
+                        {{ field }}
+                        {% with of=form|other_field:field.name %}{% if of %}{{ of }}{% endif %}{% endwith %}
+                    </div>
+                    {% if field.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>
+                    {% endif %}
+                    {% with of=form|other_field:field.name %}{% if of.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ of.errors|join:", " }}</p>
+                    {% endif %}{% endwith %}
+                </div>
+                {% else %}
+                <div class="{% if field.name == 'comment' %}sm:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    <div class="[&>input]:w-full [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:rounded-lg [&>input]:border [&>input]:border-slate-200 dark:[&>input]:border-slate-600 [&>input]:bg-white dark:[&>input]:bg-slate-700 [&>input]:text-slate-800 dark:[&>input]:text-slate-100 [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-brand-400 [&>textarea]:w-full [&>textarea]:px-3 [&>textarea]:py-2 [&>textarea]:text-sm [&>textarea]:rounded-lg [&>textarea]:border [&>textarea]:border-slate-200 dark:[&>textarea]:border-slate-600 [&>textarea]:bg-white dark:[&>textarea]:bg-slate-700 [&>textarea]:text-slate-800 dark:[&>textarea]:text-slate-100 [&>textarea]:focus:outline-none [&>textarea]:focus:ring-2 [&>textarea]:focus:ring-brand-400 [&>select]:w-full [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:rounded-lg [&>select]:border [&>select]:border-slate-200 dark:[&>select]:border-slate-600 [&>select]:bg-white dark:[&>select]:bg-slate-700 [&>select]:text-slate-800 dark:[&>select]:text-slate-100">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if advanced_fields %}
+        <details class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-4 group">
+            <summary class="px-5 py-3 cursor-pointer flex items-center justify-between text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors list-none">
+                Дополнительно
+                <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="p-5 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for field in advanced_fields %}
+                {% if field.name|endswith:"_select" %}
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ field.label }}
+                    </label>
+                    <div class="[&>select]:w-full [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:rounded-lg [&>select]:border [&>select]:border-slate-200 dark:[&>select]:border-slate-600 [&>select]:bg-white dark:[&>select]:bg-slate-700 [&>select]:text-slate-800 dark:[&>select]:text-slate-100 [&>input]:w-full [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:rounded-lg [&>input]:border [&>input]:border-slate-200 dark:[&>input]:border-slate-600 [&>input]:bg-white dark:[&>input]:bg-slate-700 [&>input]:text-slate-800 dark:[&>input]:text-slate-100 [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-brand-400 [&>input]:mt-2">
+                        {{ field }}
+                        {% with of=form|other_field:field.name %}{% if of %}{{ of }}{% endif %}{% endwith %}
+                    </div>
+                    {% if field.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>
+                    {% endif %}
+                    {% with of=form|other_field:field.name %}{% if of.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ of.errors|join:", " }}</p>
+                    {% endif %}{% endwith %}
+                </div>
+                {% else %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ field.label }}
+                    </label>
+                    <div class="[&>input]:w-full [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:rounded-lg [&>input]:border [&>input]:border-slate-200 dark:[&>input]:border-slate-600 [&>input]:bg-white dark:[&>input]:bg-slate-700 [&>input]:text-slate-800 dark:[&>input]:text-slate-100 [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-brand-400 [&>textarea]:w-full [&>textarea]:px-3 [&>textarea]:py-2 [&>textarea]:text-sm [&>textarea]:rounded-lg [&>textarea]:border [&>textarea]:border-slate-200 dark:[&>textarea]:border-slate-600 [&>textarea]:bg-white dark:[&>textarea]:bg-slate-700 [&>textarea]:text-slate-800 dark:[&>textarea]:text-slate-100 [&>textarea]:focus:outline-none [&>textarea]:focus:ring-2 [&>textarea]:focus:ring-brand-400">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+
+        <div class="flex items-center gap-3">
+            <button type="submit"
+                    class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                Сохранить
+            </button>
+            <a href="{% url 'auto:list' %}"
+               class="px-5 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'js/hybrid_fields.js' %}"></script>
+{% endblock %}

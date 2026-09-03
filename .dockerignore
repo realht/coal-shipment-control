@@ -1,0 +1,52 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# VCS and local tooling
+.git
+.claude
+.codex
+.playwright-cli
+.mcp.json
+
+# Dependencies
+node_modules/
+app/.venv/
+app/venv/
+app/env/
+
+# Python, test, and lint caches
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.pytest_tmp*/
+.ruff_cache/
+.cache/
+app/.pytest_tmp*/
+app/.ruff_cache/
+app/.tmp/
+
+# Runtime data
+app/db.sqlite3
+app/result.txt
+app/*.sqlite3
+app/*.sqlite3-journal
+app/uploads/
+app/media/
+app/backups/
+app/staticfiles/
+
+# Logs
+*.log
+logs/
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+.DS_Store
+desktop.ini

@@ -1,0 +1,108 @@
+# Secrets — никогда не коммитить
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Django
+*.sqlite3
+*.sqlite3-journal
+/app/staticfiles/
+/app/media/
+local_settings.py
+
+# Загруженные документы (в prod лежат вне репозитория)
+/uploads/
+/app/uploads/
+/runtime/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Тесты и coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.pytest_tmp*/
+**/.tmp/*
+!**/.tmp/.gitkeep
+.tox/
+.cache/
+coverage.xml
+*.cover
+
+# Локальные test-output файлы
+app/result.txt
+
+# Дампы БД и архивы
+*.sql
+*.dump
+*.bak
+backups/
+/coal_shipments_backups/
+
+# Логи
+*.log
+logs/
+
+# Сборка Docker
+.docker/
+
+# Папки передачи заказчику
+/handoff/
+/.handoff-test/
+/.worktrees/
+
+# Исходный Excel-пример (содержит данные клиентов)
+docs/отгрузки пример.xlsx
+docs/*.xlsx
+
+# Node.js (Tailwind билд)
+node_modules/
+acceptance-report/
+output/playwright/
+
+# Claude Code — локальная среда разработки (не для репозитория)
+.claude/
+.claude/settings.json
+.claude/settings.local.json
+.codex/
+.mcp.json
+.mcp.local.json
+
+# Local cleanup helpers
+/cleanup_project.ps1
+
+# Release script output
+/release/output/
+/release/for_audit/
+/release/_for_audit/
+
+# Артефакты аудита (локальные)
+docs/audit/corrections/
+docs/audit/corrections_v*/
+
+# Технические планы реализации (локальные, не для репозитория и handoff-пакета)
+docs/wiki/plans/

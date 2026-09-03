@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Запись аудита #{{ log.pk }} — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Запись аудита #{{ log.pk }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-5">
+
+    <div class="flex gap-2">
+        <a href="{% url 'audit:list' %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            К журналу
+        </a>
+        {% if log.entity_type == "auto_shipment" %}
+        <a href="{% url 'auto:detail' log.entity_id %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900/30 hover:bg-brand-100 dark:hover:bg-brand-900/50 rounded-lg transition-colors">
+            Автоотгрузка #{{ log.entity_id }}
+        </a>
+        {% elif log.entity_type == "rail_shipment" %}
+        <a href="{% url 'rail:detail' log.entity_id %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900/30 hover:bg-brand-100 dark:hover:bg-brand-900/50 rounded-lg transition-colors">
+            ЖД-отгрузка #{{ log.entity_id }}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Meta -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Информация о событии</h2>
+        </div>
+        <dl class="divide-y divide-slate-100 dark:divide-slate-700">
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Дата</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ log.created_at }}</dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Тип записи</dt>
+                <dd><span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{{ log.get_entity_type_display }}</span></dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Действие</dt>
+                <dd>
+                    {% if log.action == "create" %}<span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400">{{ log.get_action_display }}</span>
+                    {% elif log.action == "delete" %}<span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">{{ log.get_action_display }}</span>
+                    {% elif log.action == "update" %}<span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">{{ log.get_action_display }}</span>
+                    {% else %}<span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400">{{ log.get_action_display }}</span>{% endif %}
+                </dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Источник</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ log.get_source_display }}</dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">Пользователь</dt>
+                <dd class="text-sm text-slate-800 dark:text-slate-200">{{ log.user|default:"—" }}</dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">IP-адрес</dt>
+                <dd class="text-sm font-mono text-slate-800 dark:text-slate-200">{{ log.ip_address|default:"—" }}</dd>
+            </div>
+            <div class="flex items-start px-5 py-3 gap-4">
+                <dt class="w-36 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide pt-0.5">User-Agent</dt>
+                <dd class="text-xs text-slate-500 dark:text-slate-400 break-all">{{ log.user_agent|default:"—" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Values comparison -->
+    {% if log.old_values or log.new_values %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% if log.old_values %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-red-50 dark:bg-red-900/20">
+                <h2 class="text-sm font-semibold text-red-700 dark:text-red-400">До изменения</h2>
+            </div>
+            <dl class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for key, value in log.old_values.items %}
+                <div class="flex items-start px-4 py-2 gap-3">
+                    <dt class="w-32 shrink-0 text-xs text-slate-400 pt-0.5">{{ key }}</dt>
+                    <dd class="text-xs text-slate-700 dark:text-slate-300 break-all">{{ value|default:"—" }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+        </div>
+        {% endif %}
+        {% if log.new_values %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h2 class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">После изменения</h2>
+            </div>
+            <dl class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for key, value in log.new_values.items %}
+                <div class="flex items-start px-4 py-2 gap-3">
+                    <dt class="w-32 shrink-0 text-xs text-slate-400 pt-0.5">{{ key }}</dt>
+                    <dd class="text-xs text-slate-700 dark:text-slate-300 break-all">{{ value|default:"—" }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Импорт Excel — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Импорт Excel{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+        <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Выберите тип импорта</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a href="{% url 'imports:upload' %}?type=auto"
+               class="flex flex-col gap-2 p-5 rounded-xl border-2 border-brand-200 dark:border-brand-700 hover:border-brand-500 dark:hover:border-brand-400 bg-brand-50 dark:bg-brand-900/20 transition-colors">
+                <svg class="w-7 h-7 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2-2m10 2V8m0 0l3 3m-3-3l-3 3"/></svg>
+                <span class="font-semibold text-slate-700 dark:text-slate-200">Автоотгрузки</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Лист «ам» — месяц, объект, марка, кол-во</span>
+            </a>
+            <a href="{% url 'imports:upload' %}?type=rail"
+               class="flex flex-col gap-2 p-5 rounded-xl border-2 border-emerald-200 dark:border-emerald-700 hover:border-emerald-500 dark:hover:border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 transition-colors">
+                <svg class="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                <span class="font-semibold text-slate-700 dark:text-slate-200">ЖД-отгрузки</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Лист «жд новый» — дата, вагон, получатель</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-slate-500 dark:text-slate-400">История импортов</span>
+        <a href="{% url 'imports:log' %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">Открыть журнал →</a>
+    </div>
+</div>
+{% endblock %}

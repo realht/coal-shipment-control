@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Главная{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <p class="text-slate-500 dark:text-slate-400 mb-6">
+        Добро пожаловать, <span class="font-semibold text-slate-700 dark:text-slate-200">{{ user.get_full_name|default:user.username }}</span>.
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        {% if can_view_auto %}
+        <a href="{% url 'auto:list' %}"
+           class="group flex items-center gap-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-md transition-all duration-150">
+            <div class="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center shrink-0 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
+                <svg class="w-6 h-6 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2-2m10 2V8m0 0l3 3m-3-3l-3 3"/>
+                </svg>
+            </div>
+            <div>
+                <div class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Автоотгрузки</div>
+                <div class="text-xs text-slate-400 mt-0.5">Список, создание, экспорт</div>
+            </div>
+        </a>
+        {% endif %}
+
+        {% if can_view_rail %}
+        <a href="{% url 'rail:list' %}"
+           class="group flex items-center gap-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-md transition-all duration-150">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/40 transition-colors">
+                <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+            </div>
+            <div>
+                <div class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">ЖД-отгрузки</div>
+                <div class="text-xs text-slate-400 mt-0.5">Список, создание, экспорт</div>
+            </div>
+        </a>
+        {% endif %}
+
+        {% if can_view_audit %}
+        <a href="{% url 'audit:list' %}"
+           class="group flex items-center gap-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-md transition-all duration-150">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Журнал изменений</div>
+                <div class="text-xs text-slate-400 mt-0.5">История всех операций</div>
+            </div>
+        </a>
+        {% endif %}
+
+        {% if can_manage_users %}
+        <a href="{% url 'accounts:list' %}"
+           class="group flex items-center gap-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-violet-400 dark:hover:border-violet-500 hover:shadow-md transition-all duration-150">
+            <div class="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Пользователи</div>
+                <div class="text-xs text-slate-400 mt-0.5">Управление доступом</div>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Dashboard block (B-0506/0507) -->
+    {% if can_view_auto or can_view_rail %}
+    <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Статистика за {{ month_label }}</h2>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {% if can_view_auto %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-400 dark:text-slate-500 mb-1">Авто отгрузок</div>
+            <div class="text-2xl font-bold text-slate-700 dark:text-slate-100">{{ auto_count_month }}</div>
+            <div class="text-xs text-slate-400 mt-0.5">за текущий месяц</div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-400 dark:text-slate-500 mb-1">Авто тоннаж</div>
+            <div class="text-2xl font-bold text-brand-600 dark:text-brand-400">{{ auto_total_month|floatformat:0 }} т</div>
+            <div class="text-xs text-slate-400 mt-0.5">за текущий месяц</div>
+        </div>
+        {% endif %}
+        {% if can_view_rail %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-400 dark:text-slate-500 mb-1">ЖД отгрузок</div>
+            <div class="text-2xl font-bold text-slate-700 dark:text-slate-100">{{ rail_count_month }}</div>
+            <div class="text-xs text-slate-400 mt-0.5">за текущий месяц</div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-400 dark:text-slate-500 mb-1">ЖД тоннаж</div>
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ rail_total_month|floatformat:0 }} т</div>
+            <div class="text-xs text-slate-400 mt-0.5">за текущий месяц</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <!-- По маркам авто -->
+        {% if can_view_auto and auto_by_grade %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Авто — тоннаж по маркам (всего)</div>
+            <div class="space-y-2">
+                {% for row in auto_by_grade %}
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-600 dark:text-slate-300 w-32 truncate" title="{{ row.coal_grade }}">{{ row.coal_grade }}</span>
+                    <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-brand-500 dark:bg-brand-400 h-2 rounded-full"
+                             data-width-pct="{% widthratio row.total auto_total_all 100 %}"></div>
+                    </div>
+                    <span class="text-xs font-mono text-slate-500 dark:text-slate-400 w-20 text-right">{{ row.total|floatformat:0 }} т</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- По маркам ЖД -->
+        {% if can_view_rail and rail_by_grade %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">ЖД — тоннаж по маркам (всего)</div>
+            <div class="space-y-2">
+                {% for row in rail_by_grade %}
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-600 dark:text-slate-300 w-32 truncate" title="{{ row.cargo }}">{{ row.cargo }}</span>
+                    <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-emerald-500 dark:bg-emerald-400 h-2 rounded-full"
+                             data-width-pct="{% widthratio row.total rail_total_all 100 %}"></div>
+                    </div>
+                    <span class="text-xs font-mono text-slate-500 dark:text-slate-400 w-20 text-right">{{ row.total|floatformat:0 }} т</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Виджеты (B-0507) -->
+    {% if can_view_auto and auto_no_docs or can_view_auto and auto_ttn_no_file or can_view_rail and rail_no_docs %}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {% if can_view_auto %}
+        <a href="{% url 'auto:list' %}" class="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+            <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+                <div class="text-sm font-semibold text-amber-700 dark:text-amber-400">{{ auto_no_docs }}</div>
+                <div class="text-xs text-amber-600 dark:text-amber-500">авто без документов</div>
+            </div>
+        </a>
+        <a href="{% url 'auto:list' %}" class="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/50 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
+            <svg class="w-5 h-5 text-orange-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div>
+                <div class="text-sm font-semibold text-orange-700 dark:text-orange-400">{{ auto_ttn_no_file }}</div>
+                <div class="text-xs text-orange-600 dark:text-orange-500">с ТТН, но без файла</div>
+            </div>
+        </a>
+        {% endif %}
+        {% if can_view_rail %}
+        <a href="{% url 'rail:list' %}" class="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+            <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+                <div class="text-sm font-semibold text-amber-700 dark:text-amber-400">{{ rail_no_docs }}</div>
+                <div class="text-xs text-amber-600 dark:text-amber-500">ЖД без документов</div>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<script src="{% static 'js/progress_bar.js' %}"></script>
+{% endblock %}

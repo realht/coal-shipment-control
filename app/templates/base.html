@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Учёт отгрузок угля{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/confirm_actions.js' %}"></script>
+    <script src="{% static 'js/navbar.js' %}"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+{% if user.is_authenticated %}
+<div class="flex flex-col min-h-screen">
+
+    <!-- Top bar: logo + user + theme + logout -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between px-4 h-12">
+            <!-- Left: hamburger + logo + app name -->
+            <div class="flex items-center gap-2">
+                <!-- Hamburger (mobile) -->
+                <button id="navbar-toggle" data-navbar-toggle
+                        class="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <!-- Logo + app name -->
+                <a href="{% url 'index' %}" class="flex items-center gap-2 group shrink-0">
+                    <span class="text-xl leading-none">⛏</span>
+                    <span class="font-bold text-sm text-slate-700 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Учёт отгрузок</span>
+                </a>
+            </div>
+
+            <!-- Right side: user name + theme + logout -->
+            <div class="flex items-center gap-1">
+                <!-- User name -->
+                <div class="flex items-center gap-2 px-2 py-1 rounded-lg">
+                    <div class="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}
+                    </div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-300 hidden sm:inline truncate max-w-32">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </div>
+                <!-- Theme toggle -->
+                <button data-theme-toggle title="Переключить тему"
+                        class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <span class="hidden dark:inline">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </span>
+                    <span class="inline dark:hidden">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </span>
+                </button>
+                <!-- Logout -->
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" title="Выйти"
+                            class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Navigation row -->
+        <nav id="navbar-menu" class="hidden md:flex border-t border-slate-100 dark:border-slate-700 px-2 pb-1 pt-1 flex-wrap gap-0.5">
+            {% if can_view_auto %}
+            <a href="{% url 'auto:list' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'auto' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2-2m10 2V8m0 0l3 3m-3-3l-3 3"/></svg>
+                Авто
+            </a>
+            {% endif %}
+            {% if can_view_rail %}
+            <a href="{% url 'rail:list' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'rail' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                ЖД
+            </a>
+            {% endif %}
+            {% if can_view_duplicates %}
+            <a href="{% url 'duplicates' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.url_name == 'duplicates' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Дубли
+            </a>
+            {% endif %}
+            {% if can_view_audit %}
+            <a href="{% url 'audit:list' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'audit' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Журнал
+            </a>
+            {% endif %}
+            {% if can_import_shipments %}
+            <a href="{% url 'imports:index' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'imports' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Импорт
+            </a>
+            {% endif %}
+            {% if can_manage_catalogs %}
+            <a href="{% url 'catalogs:list' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'catalogs' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                Справочники
+            </a>
+            {% endif %}
+            {% if can_manage_field_settings %}
+            <a href="{% url 'core:field_settings' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.url_name == 'field_settings' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Настройки
+            </a>
+            {% endif %}
+            {% if can_view_system %}
+            <a href="{% url 'core:system_status' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.url_name == 'system_status' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V7m2 14H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/></svg>
+                Система
+            </a>
+            {% endif %}
+            {% if can_manage_users %}
+            <a href="{% url 'accounts:list' %}"
+               class="nav-link text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-400 {% if request.resolver_match.app_name == 'accounts' %}bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-400{% endif %}">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Пользователи
+            </a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Alerts -->
+    {% if messages %}
+    <div class="px-4 pt-3 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800
+            {% elif message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800
+            {% else %}bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page title bar -->
+    <div class="px-4 pt-4 pb-1">
+        <h1 class="text-base font-semibold text-slate-700 dark:text-slate-200">{% block page_title %}{% endblock %}</h1>
+    </div>
+
+    <main class="flex-1 px-4 py-4">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+{% else %}
+<!-- Unauthenticated: full-page centered -->
+<main class="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-600 to-brand-900 dark:from-slate-800 dark:to-slate-900 px-4">
+    {% block content_anon %}{% endblock %}
+</main>
+{% endif %}
+
+</body>
+</html>

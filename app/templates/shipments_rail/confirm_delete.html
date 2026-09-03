@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Удалить ЖД-отгрузку #{{ shipment.pk }} — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Удаление ЖД-отгрузки{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-800 overflow-hidden">
+        <div class="px-5 py-4 border-b border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/20 flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <h2 class="text-sm font-semibold text-red-700 dark:text-red-300">Подтвердите удаление</h2>
+        </div>
+        <div class="px-5 py-4">
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Запись будет помечена как удалённая и не будет отображаться в списке.</p>
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg px-4 py-3 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                <div><span class="text-slate-400">Дата:</span> <strong>{{ shipment.departure_date }}</strong></div>
+                <div><span class="text-slate-400">Вагон:</span> {{ shipment.wagon_number }}</div>
+                <div><span class="text-slate-400">Получатель / объём:</span> {{ shipment.receiver }} / {{ shipment.volume }} т</div>
+                {% if document_count %}
+                <div class="pt-1 border-t border-slate-200 dark:border-slate-600">
+                    <span class="text-slate-400">Прикреплённых документов:</span>
+                    <strong class="text-amber-600 dark:text-amber-400">{{ document_count }}</strong>
+                    <span class="text-xs text-slate-400">(будут скрыты вместе с отгрузкой)</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-5 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-3">
+            <form method="post" action="{% url 'rail:delete' shipment.pk %}{% if return_url %}?next={{ return_url|urlencode }}{% endif %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    Да, удалить
+                </button>
+            </form>
+            <a href="{% if return_url %}{{ return_url }}{% else %}{% url 'rail:detail' shipment.pk %}{% endif %}"
+               class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                Отмена
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Загрузка Excel — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Импорт Excel — загрузка файла{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="shipment_type" value="{{ shipment_type }}">
+
+            <div class="mb-5">
+                <p class="text-sm text-slate-600 dark:text-slate-300 mb-1">
+                    Тип: <span class="font-semibold">{% if shipment_type == "auto" %}Автоотгрузки{% else %}ЖД-отгрузки{% endif %}</span>
+                </p>
+                {% if shipment_type == "auto" %}
+                <p class="text-xs text-slate-500 dark:text-slate-400">Ожидаются столбцы: месяц, число, объект, марка, кол-во. Лист: «ам».</p>
+                {% else %}
+                <p class="text-xs text-slate-500 dark:text-slate-400">Ожидаются столбцы: дата отправления, номер вагона, груз, грузополучатель, объем. Лист: «жд новый».</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-5 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-xs text-amber-800 dark:text-amber-200">
+                Импорт работает в частичном режиме: успешные выбранные строки сохраняются, строки с ошибками, дубли и снятые строки пропускаются.
+            </div>
+
+            {% if shipment_type == "auto" %}
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                    Год данных <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="year" min="2000" max="2100"
+                       value="{{ request.POST.year|default:'' }}"
+                       placeholder="Например, 2025"
+                       class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                <p class="mt-1 text-xs text-slate-400">В Excel указан только месяц и число — год нужен для формирования даты.</p>
+            </div>
+            {% endif %}
+
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                    Файл Excel <span class="text-red-500">*</span>
+                </label>
+                <input type="file" name="excel_file" accept=".xlsx,.xls"
+                       class="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 dark:file:bg-brand-900/30 file:text-brand-700 dark:file:text-brand-300 hover:file:bg-brand-100 dark:hover:file:bg-brand-900/50 transition-colors">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="submit"
+                        class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    Загрузить и проверить
+                </button>
+                <a href="{% url 'imports:index' %}"
+                   class="px-5 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

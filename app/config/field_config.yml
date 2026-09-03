@@ -1,0 +1,30 @@
+auto_shipment:
+  shipment_date:    { visible: true,  required: true,  section: main }
+  customer_object:  { visible: true,  required: true,  section: main }
+  vehicle_number:   { visible: true,  required: false, section: main }
+  driver_name:      { visible: true,  required: false, section: main }
+  ttn_number:       { visible: true,  required: false, section: main }
+  coal_grade:       { visible: true,  required: true,  section: main }
+  quantity:         { visible: true,  required: true,  section: main }
+  carrier:          { visible: true,  required: false, section: main }
+  comment:          { visible: true,  required: false, section: main }
+  sub_object:       { visible: true,  required: false, section: advanced }
+  base_code:        { visible: true,  required: false, section: advanced }
+  upd_number:       { visible: true,  required: false, section: advanced }
+  balance_note:     { visible: true,  required: false, section: advanced }
+  source_month_text: { visible: false, required: false, section: advanced }
+  source_day_number: { visible: false, required: false, section: advanced }
+
+rail_shipment:
+  departure_date:      { visible: true,  required: true,  section: main }
+  wagon_number:        { visible: true,  required: true,  section: main }
+  document_number:     { visible: true,  required: false, section: main }
+  cargo:               { visible: true,  required: true,  section: main }
+  destination_station: { visible: true,  required: false, section: main }
+  receiver:            { visible: true,  required: true,  section: main }
+  volume:              { visible: true,  required: true,  section: main }
+  comment:             { visible: true,  required: false, section: main }
+  origin_region:       { visible: true,  required: false, section: advanced }
+  origin_station:      { visible: true,  required: false, section: advanced }
+  sender:              { visible: true,  required: false, section: advanced }
+  destination_region:  { visible: true,  required: false, section: advanced }

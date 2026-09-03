@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Удалённые автоотгрузки — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Удалённые автоотгрузки{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <div class="flex items-center gap-2">
+        <a href="{% url 'auto:list' %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            К списку
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+            <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Удалённые записи ({{ paginator.count }})</h2>
+        </div>
+
+        {% if shipments %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/30">
+                        <th class="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Дата</th>
+                        <th class="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Объект</th>
+                        <th class="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Марка угля</th>
+                        <th class="text-right px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Кол-во</th>
+                        <th class="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Удалено</th>
+                        <th class="px-4 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for s in shipments %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                        <td class="px-4 py-2 text-slate-700 dark:text-slate-300">{{ s.shipment_date }}</td>
+                        <td class="px-4 py-2 text-slate-700 dark:text-slate-300">{{ s.customer_object }}</td>
+                        <td class="px-4 py-2 text-slate-500 dark:text-slate-400">{{ s.coal_grade }}</td>
+                        <td class="px-4 py-2 text-right font-mono text-slate-700 dark:text-slate-300">{{ s.quantity }}</td>
+                        <td class="px-4 py-2 text-xs text-slate-400">{{ s.updated_at|date:"d.m.Y H:i" }} · {{ s.updated_by }}</td>
+                        <td class="px-4 py-2 text-right">
+                            <form method="post" action="{% url 'auto:restore' s.pk %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="text-xs px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
+                                    Восстановить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">←</a>
+            {% endif %}
+            <span class="px-3 py-1 text-sm text-slate-500">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">→</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <p class="px-5 py-4 text-sm text-slate-400 dark:text-slate-500">Удалённых записей нет.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

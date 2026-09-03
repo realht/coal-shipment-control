@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузить документ — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Загрузить документ{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 text-sm">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-4">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+                <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Документ</h2>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label for="{{ form.document_type.id_for_label }}"
+                           class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ form.document_type.label }}
+                    </label>
+                    <div class="[&>select]:w-full [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:rounded-lg [&>select]:border [&>select]:border-slate-200 dark:[&>select]:border-slate-600 [&>select]:bg-white dark:[&>select]:bg-slate-700 [&>select]:text-slate-800 dark:[&>select]:text-slate-100 [&>select]:focus:outline-none [&>select]:focus:ring-2 [&>select]:focus:ring-brand-400">
+                        {{ form.document_type }}
+                    </div>
+                    {% if form.document_type.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.document_type.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.file.id_for_label }}"
+                           class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+                        {{ form.file.label }}
+                    </label>
+                    <div class="[&>input]:w-full [&>input]:text-sm [&>input]:text-slate-700 dark:[&>input]:text-slate-300 [&>input]:file:mr-3 [&>input]:file:py-1.5 [&>input]:file:px-3 [&>input]:file:rounded-lg [&>input]:file:border-0 [&>input]:file:text-xs [&>input]:file:font-medium [&>input]:file:bg-brand-50 dark:[&>input]:file:bg-brand-900/30 [&>input]:file:text-brand-700 dark:[&>input]:file:text-brand-400 [&>input]:file:cursor-pointer hover:[&>input]:file:bg-brand-100">
+                        {{ form.file }}
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">PDF, JPG, JPEG, PNG, XLSX, DOCX · максимум 25 МБ</p>
+                    {% if form.file.errors %}
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.file.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="submit"
+                    class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                Загрузить
+            </button>
+            <a href="{{ back_url }}"
+               class="px-5 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="953" viewBox="0 0 1000 953" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Coal icon with warm sun rays</title>
+  <desc>Vector SVG version of a coal industry themed icon: three dark coal stones with orange-yellow sun rays.</desc>
+
+  <defs>
+    <radialGradient id="warmGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(502 430) rotate(90) scale(390 490)">
+      <stop offset="0" stop-color="#FFD46F" stop-opacity="0.46"/>
+      <stop offset="0.44" stop-color="#FFC74F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFDF5" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="sunArc" x1="160" y1="300" x2="705" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF6A19"/>
+      <stop offset="0.45" stop-color="#FFA328"/>
+      <stop offset="1" stop-color="#FFC842"/>
+    </linearGradient>
+
+    <linearGradient id="sunRay" x1="760" y1="90" x2="920" y2="315" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFAE2F"/>
+      <stop offset="1" stop-color="#FFD344"/>
+    </linearGradient>
+
+    <linearGradient id="coalMain" x1="500" y1="214" x2="500" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1C1B19"/>
+      <stop offset="0.42" stop-color="#302F2B"/>
+      <stop offset="1" stop-color="#171714"/>
+    </linearGradient>
+
+    <linearGradient id="coalSide" x1="91" y1="527" x2="356" y2="891" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#20201D"/>
+      <stop offset="0.55" stop-color="#3A3934"/>
+      <stop offset="1" stop-color="#171714"/>
+    </linearGradient>
+
+    <linearGradient id="coalSideRight" x1="905" y1="527" x2="640" y2="891" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#20201D"/>
+      <stop offset="0.55" stop-color="#3A3934"/>
+      <stop offset="1" stop-color="#171714"/>
+    </linearGradient>
+
+    <linearGradient id="highlightMain" x1="326" y1="250" x2="650" y2="580" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#76736C" stop-opacity="0.76"/>
+      <stop offset="0.55" stop-color="#5B5954" stop-opacity="0.52"/>
+      <stop offset="1" stop-color="#383733" stop-opacity="0.1"/>
+    </linearGradient>
+
+    <linearGradient id="highlightSide" x1="96" y1="572" x2="302" y2="721" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#77746C" stop-opacity="0.68"/>
+      <stop offset="1" stop-color="#4D4B45" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <linearGradient id="highlightSideRight" x1="904" y1="572" x2="698" y2="721" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#77746C" stop-opacity="0.68"/>
+      <stop offset="1" stop-color="#4D4B45" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="1000" height="953" fill="#FFFDF5"/>
+  <rect width="1000" height="953" fill="url(#warmGlow)"/>
+
+  <g opacity="0.98" stroke-linecap="round">
+    <path d="M176 428C207 246 371 168 520 174C592 177 648 193 697 210" stroke="url(#sunArc)" stroke-width="39"/>
+    <path d="M833 424C817 371 796 324 771 284" stroke="url(#sunRay)" stroke-width="39"/>
+    <path d="M846 190L883 148" stroke="url(#sunRay)" stroke-width="39"/>
+    <path d="M766 150L759 115" stroke="url(#sunRay)" stroke-width="39"/>
+    <path d="M870 277C888 273 906 274 923 280" stroke="url(#sunRay)" stroke-width="39"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <path d="M241 738C245 615 243 493 261 384C267 346 287 321 323 303L433 236C477 209 537 208 584 224L680 257C724 272 752 298 763 344L802 511C819 580 794 648 737 690L630 768C576 808 510 820 448 790L321 728C294 715 268 717 241 738Z" fill="url(#coalMain)"/>
+
+    <path d="M38 742C34 680 56 593 101 553C132 526 172 511 213 511C250 511 278 525 309 548L350 579C391 610 408 657 399 711L383 809C376 853 336 887 288 895L221 906C190 911 158 902 134 881L69 824C50 807 40 782 38 742Z" fill="url(#coalSide)"/>
+
+    <path d="M962 742C966 680 944 593 899 553C868 526 828 511 787 511C750 511 722 525 691 548L650 579C609 610 592 657 601 711L617 809C624 853 664 887 712 895L779 906C810 911 842 902 866 881L931 824C950 807 960 782 962 742Z" fill="url(#coalSideRight)"/>
+
+    <path d="M279 493C286 436 304 382 332 356C354 335 388 322 423 329L526 350C563 357 592 378 618 405L665 454C681 471 689 494 683 517L649 646C644 666 630 684 612 695L521 752C500 766 473 770 449 762L395 743C401 700 408 660 401 629C391 585 362 561 326 540L279 493Z" fill="url(#highlightMain)" opacity="0.55"/>
+
+    <path d="M356 338C384 321 412 303 442 286C471 269 498 242 520 256C541 269 558 300 583 320L621 350C587 338 549 336 506 326L426 309C385 302 353 311 329 335L356 338Z" fill="#7D7A72" opacity="0.34"/>
+
+    <path d="M104 583L182 550C201 542 223 542 242 550L309 578C331 587 340 612 326 632C313 650 287 661 262 660L197 656C169 654 142 644 119 629L99 616C86 607 89 590 104 583Z" fill="url(#highlightSide)" opacity="0.82"/>
+
+    <path d="M76 704C74 675 87 648 111 635L202 665C219 671 225 692 214 706C201 721 209 742 210 762L211 802C212 824 189 840 167 831L111 808C91 799 79 780 78 759L76 704Z" fill="#625F58" opacity="0.36"/>
+
+    <path d="M896 583L818 550C799 542 777 542 758 550L691 578C669 587 660 612 674 632C687 650 713 661 738 660L803 656C831 654 858 644 881 629L901 616C914 607 911 590 896 583Z" fill="url(#highlightSideRight)" opacity="0.82"/>
+
+    <path d="M924 704C926 675 913 648 889 635L798 665C781 671 775 692 786 706C799 721 791 742 790 762L789 802C788 824 811 840 833 831L889 808C909 799 921 780 922 759L924 704Z" fill="#625F58" opacity="0.36"/>
+  </g>
+</svg>

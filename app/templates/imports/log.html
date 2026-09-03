@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Журнал импортов — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Журнал импортов{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+        <a href="{% url 'imports:index' %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">← Новый импорт</a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Дата</th>
+                        <th class="px-4 py-3 text-left">Тип</th>
+                        <th class="px-4 py-3 text-left">Файл</th>
+                        <th class="px-4 py-3 text-left">Статус</th>
+                        <th class="px-4 py-3 text-right">Всего</th>
+                        <th class="px-4 py-3 text-right">Создано</th>
+                        <th class="px-4 py-3 text-right">Обновлено</th>
+                        <th class="px-4 py-3 text-right">Пропущено</th>
+                        <th class="px-4 py-3 text-right">Дублей</th>
+                        <th class="px-4 py-3 text-right">Ошибок</th>
+                        <th class="px-4 py-3 text-left">Кто</th>
+                        <th class="px-4 py-3 text-left">Детали</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for log in logs %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                        <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300">{{ log.created_at|date:"d.m.Y H:i" }}</td>
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ log.get_shipment_type_display }}</td>
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{{ log.filename }}</td>
+                        <td class="px-4 py-3">
+                            {% if log.status == "success" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400">Успешно</span>
+                            {% elif log.status == "partial" %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">Частично</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">Ошибка</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-300">{{ log.total_rows }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-emerald-700 dark:text-emerald-400">{{ log.imported_rows }}</td>
+                        <td class="px-4 py-3 text-right text-sky-600 dark:text-sky-400">{{ log.updated_rows }}</td>
+                        <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-300">{{ log.skipped_rows }}</td>
+                        <td class="px-4 py-3 text-right text-amber-600 dark:text-amber-400">{{ log.duplicate_rows }}</td>
+                        <td class="px-4 py-3 text-right text-red-600 dark:text-red-400">{{ log.error_rows }}</td>
+                        <td class="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">{{ log.created_by.get_full_name|default:log.created_by.username|default:"—" }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{% url 'imports:result' log.pk %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">Открыть</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" class="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">Импортов ещё не было</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <div class="flex items-center gap-2 justify-center text-sm">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">←</a>
+        {% endif %}
+        <span class="text-slate-500 dark:text-slate-400">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">→</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Система — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Система и резервные копии{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl space-y-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">Автоотгрузки</div>
+            <div class="mt-1 text-2xl font-semibold">{{ auto_count }}</div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">ЖД-отгрузки</div>
+            <div class="mt-1 text-2xl font-semibold">{{ rail_count }}</div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">Документы</div>
+            <div class="mt-1 text-2xl font-semibold">{{ document_count }}</div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">Пользователи</div>
+            <div class="mt-1 text-2xl font-semibold">{{ user_count }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Операционный режим</h2>
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-base text-slate-600 dark:text-slate-300">
+                        <span>Текущий режим:</span>
+                        {% if system_state.mode == MODE_NORMAL %}
+                        <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            {{ system_state.get_mode_display }}
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            {{ system_state.get_mode_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if system_state.reason %}
+                    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Причина: {{ system_state.reason }}</p>
+                    {% endif %}
+                </div>
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                    При профилактике обычные пользователи видят страницу обслуживания, администраторы продолжают работу.
+                </div>
+            </div>
+
+            {% if system_state.mode == MODE_RESTORE_RUNNING %}
+            <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+                <div class="font-semibold">Восстановление было прервано или всё ещё числится выполняющимся.</div>
+                <p class="mt-2">
+                    Если сервер был перезапущен во время restore, завершите зависшую операцию. Система перейдёт в режим профилактики, чтобы администратор проверил данные перед возвратом в normal.
+                </p>
+                {% if can_recover_system_operations %}
+                <form method="post" action="{% url 'core:recover_restore' %}" class="pt-4">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-sm transition-colors">
+                        Завершить зависшее восстановление
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if active_operation and system_state.mode != MODE_RESTORE_RUNNING %}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                <div class="font-semibold">Есть активная операция backup/restore.</div>
+                <div class="mt-2 space-y-1 text-xs">
+                    {% for run in active_backup_runs %}
+                    <div>Backup #{{ run.pk }} — {{ run.get_backup_type_display }} — {{ run.get_status_display }}</div>
+                    {% endfor %}
+                    {% for run in active_restore_runs %}
+                    <div>Restore #{{ run.pk }} — {{ run.get_status_display }}</div>
+                    {% endfor %}
+                </div>
+                <p class="mt-2">
+                    Пока операция активна, новые backup и restore заблокированы. Если сервер был перезапущен во время операции, сбросьте зависший статус.
+                </p>
+                {% if can_recover_system_operations %}
+                <form method="post" action="{% url 'core:recover_restore' %}" class="pt-4">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold shadow-sm transition-colors">
+                        Сбросить зависшие операции
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if can_change_system_mode %}
+            <form method="post" action="{% url 'core:system_maintenance' %}">
+                {% csrf_token %}
+                <label class="block">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Причина профилактики</span>
+                    <input type="text" name="reason" required placeholder="Например: проверка восстановления backup"
+                           class="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+                </label>
+                <div class="flex flex-wrap items-center gap-3 pt-5">
+                    <button type="submit" name="mode" value="{{ MODE_ADMIN_ONLY }}"
+                            {% if system_state.mode == MODE_RESTORE_RUNNING %}disabled{% endif %}
+                            class="inline-flex w-auto items-center justify-center px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm transition-colors">
+                        Включить профилактику
+                    </button>
+                    <button type="submit" name="mode" value="{{ MODE_NORMAL }}" formnovalidate
+                            {% if system_state.mode == MODE_RESTORE_RUNNING %}disabled{% endif %}
+                            class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed text-emerald-700 text-sm font-medium transition-colors dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30">
+                        Вернуть normal
+                    </button>
+                </div>
+                {% if system_state.mode == MODE_RESTORE_RUNNING %}
+                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                    Во время restore обычное переключение режима недоступно. Сначала завершите зависшее восстановление.
+                </p>
+                {% endif %}
+            </form>
+            {% endif %}
+        </section>
+
+        <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Состояние системы</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                    БД:
+                    {% if db_ok %}
+                    <span class="font-semibold text-emerald-700 dark:text-emerald-400">ok</span>
+                    {% else %}
+                    <span class="font-semibold text-red-600 dark:text-red-400">ошибка</span>
+                    {% endif %}
+                </p>
+                {% if db_error %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ db_error }}</p>{% endif %}
+            </div>
+            <div class="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+                <div>Scheduler:
+                    {% if scheduler_heartbeat_at %}
+                        последний тик {{ scheduler_heartbeat_at|date:"d.m.Y H:i:s" }}
+                        {% if active_running_operation_label %}
+                            <span class="text-amber-600 dark:text-amber-400 font-semibold">выполняется {{ active_running_operation_label }}</span>
+                        {% endif %}
+                        {% if scheduler_is_stale %}
+                            <span class="text-amber-600 dark:text-amber-400 font-semibold">(нет активности)</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-slate-600 dark:text-slate-400">нет данных</span>
+                    {% endif %}
+                    {% if active_running_operation_label and not scheduler_heartbeat_at %}
+                        <span class="text-amber-600 dark:text-amber-400 font-semibold">выполняется {{ active_running_operation_label }}</span>
+                    {% endif %}
+                </div>
+                <div>Uploads: {{ uploads_path }}</div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span>Размер uploads:
+                        {% if uploads_size_bytes is not None %}{{ uploads_size_bytes|filesizeformat }}{% else %}не рассчитан{% endif %}
+                    </span>
+                    {% if uploads_size_calculated_at %}
+                        <span class="text-slate-600 dark:text-slate-400">({{ uploads_size_calculated_at|date:"d.m.Y H:i" }})</span>
+                    {% endif %}
+                    <form method="post" action="{% url 'core:recalculate_uploads_size' %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-brand-600 hover:text-brand-700 underline">Пересчитать</button>
+                    </form>
+                </div>
+                <div>Backup dir: {{ backup_dir }} {% if not backup_dir_exists %}(нет папки){% endif %}</div>
+                <div>Версия: {{ app_version|default:"не задана" }}</div>
+                <div>Build ID: {{ app_build_id|default:"не задан" }}</div>
+                <div>Commit: {{ app_git_commit_short|default:"не задан" }}</div>
+                <div>Сборка: {{ app_built_at|default:"не задана" }}</div>
+                <div>Деплой: {{ deployed_at|default:"не задан" }}</div>
+            </div>
+        </section>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Расписание backup</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Scheduler service проверяет расписание раз в минуту и выполняет queued операции по одной.</p>
+            </div>
+            {% if active_operation %}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                Сейчас есть активная или queued операция.
+            </div>
+            {% endif %}
+        </div>
+        {% if can_run_backup %}
+        <form method="post" action="{% url 'core:update_backup_schedule' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {% for schedule in backup_schedules %}
+                <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-4 space-y-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ schedule.object.get_backup_type_display }}</div>
+                            <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                Следующий запуск: {{ schedule.object.next_run_at|date:"Y-m-d H:i"|default:"не рассчитан" }}
+                            </div>
+                            <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                Последний запуск:
+                                {% if schedule.object.last_run %}
+                                    #{{ schedule.object.last_run.pk }} — {{ schedule.object.last_run.get_status_display }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </div>
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                            <input type="checkbox" name="enabled_{{ schedule.object.pk }}" {% if schedule.object.enabled %}checked{% endif %}
+                                   class="rounded border-slate-300 text-brand-600 focus:ring-brand-400">
+                            Включено
+                        </label>
+                    </div>
+                    <div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Дни недели</div>
+                        <div class="flex flex-wrap gap-2">
+                            {% for idx, label in schedule_weekday_options %}
+                            <label class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-600 px-2 py-1 text-xs">
+                                <input type="checkbox" name="weekdays_{{ schedule.object.pk }}" value="{{ idx }}"
+                                       {% if idx|stringformat:"s" in schedule.weekday_numbers %}checked{% endif %}
+                                       class="rounded border-slate-300 text-brand-600 focus:ring-brand-400">
+                                {{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <label class="block">
+                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Время запуска</span>
+                        <input type="time" name="run_time_{{ schedule.object.pk }}" value="{{ schedule.object.run_time|time:'H:i' }}"
+                               class="mt-1 w-full max-w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+                    </label>
+                </div>
+                {% empty %}
+                <div class="text-sm text-slate-500 dark:text-slate-400">Расписание backup не найдено. Примените миграции.</div>
+                {% endfor %}
+            </div>
+            <button type="submit"
+                    class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors">
+                Сохранить расписание
+            </button>
+        </form>
+        {% else %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {% for schedule in backup_schedules %}
+            <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-4 text-sm">
+                <div class="font-semibold">{{ schedule.object.get_backup_type_display }}</div>
+                <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">Статус: {% if schedule.object.enabled %}включено{% else %}выключено{% endif %}</div>
+                <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">Дни: {{ schedule.weekday_labels|join:", " }}</div>
+                <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">Время: {{ schedule.object.run_time|time:"H:i" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Backup</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">БД копируется полным дампом, uploads - full или incremental.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Запуск из UI ставит операцию в очередь; выполнение делает run_scheduler.</p>
+                {% if system_state.mode != MODE_ADMIN_ONLY %}
+                <p class="text-xs text-amber-700 dark:text-amber-300 mt-2">Backup из UI доступен только в режиме профилактики.</p>
+                {% endif %}
+            </div>
+            {% if can_run_backup %}
+            <form method="post" action="{% url 'core:start_backup' %}" class="space-y-4 pt-1">
+                {% csrf_token %}
+                <label class="block">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Комментарий к backup</span>
+                    <input type="text" name="comment" maxlength="500" placeholder="Например: перед импортом майских отгрузок"
+                           class="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+                </label>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" name="backup_type" value="full"
+                            {% if active_operation or system_state.mode != MODE_ADMIN_ONLY %}disabled{% endif %}
+                            class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors">
+                        Full backup
+                    </button>
+                    <button type="submit" name="backup_type" value="incremental"
+                            {% if active_operation or system_state.mode != MODE_ADMIN_ONLY %}disabled{% endif %}
+                            class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
+                        Incremental backup
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Restore из backup</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    Restore доступен только в режиме профилактики. Перед восстановлением система автоматически создаёт pre-restore backup.
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Запуск из UI ставит restore в очередь; выполнение делает run_scheduler.</p>
+                {% if system_state.mode != MODE_ADMIN_ONLY %}
+                <p class="text-xs text-amber-700 dark:text-amber-300 mt-2">Включите профилактику, чтобы запустить restore.</p>
+                {% endif %}
+            </div>
+            {% if can_run_restore %}
+            <form method="post" action="{% url 'core:start_restore' %}" class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                {% csrf_token %}
+                <label class="space-y-1">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Full backup</span>
+                    <select id="restore-full-backup" name="full_backup" class="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+                        <option value="">Выберите backup</option>
+                        {% for entry in full_entries %}
+                        <option value="{{ entry.key }}" data-manifest-path="{{ entry.manifest_path }}">{{ entry.created_at }} — {{ entry.backup_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Incremental, опционально</span>
+                    <select id="restore-incremental-backup" name="incremental_backup" disabled class="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                        <option value="">Сначала выберите full backup</option>
+                    </select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Подтверждение</span>
+                    <input type="text" name="confirm_text" placeholder="ВОССТАНОВИТЬ"
+                           class="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+                </label>
+                <button type="submit"
+                        {% if active_operation or system_state.mode != MODE_ADMIN_ONLY %}disabled{% endif %}
+                        class="inline-flex w-auto items-center justify-center justify-self-start px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
+                    Запустить restore
+                </button>
+            </form>
+            {% endif %}
+            {{ incremental_entries_json|json_script:"restore-incremental-entries" }}
+            <script src="{% static 'js/system_restore.js' %}"></script>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+                <h2 class="text-base font-semibold">Последние backup</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400">
+                    <tr><th class="text-left px-5 py-3">Дата</th><th class="text-left px-5 py-3">Тип</th><th class="text-left px-5 py-3">Комментарий</th><th class="text-left px-5 py-3">Размер</th><th class="text-left px-5 py-3">Действия</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for entry in backup_entries %}
+                    <tr>
+                        <td class="px-5 py-3">{{ entry.created_at }}</td>
+                        <td class="px-5 py-3">{{ entry.backup_type }}</td>
+                        <td class="px-5 py-3 text-slate-500 dark:text-slate-400">{{ entry.comment|default:"—" }}</td>
+                        <td class="px-5 py-3">{{ entry.total_size|filesizeformat }}</td>
+                        <td class="px-5 py-3">
+                            {% if can_run_backup %}
+                            <a href="{% url 'core:delete_backup' entry.key %}"
+                               class="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                Удалить
+                            </a>
+                            {% else %}
+                            <span class="text-slate-400">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-5 py-5 text-slate-500">Backup manifest не найдены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+                <h2 class="text-base font-semibold">Последние операции</h2>
+            </div>
+            <div class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for operation in operation_runs %}
+                {% with run=operation.run %}
+                <div class="px-6 py-4 text-sm">
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">{{ operation.timestamp|date:"Y-m-d H:i:s" }}</div>
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                {% if operation.kind == "backup" %}
+                                <span class="font-medium">Backup #{{ run.pk }}</span>
+                                <span class="text-slate-300 dark:text-slate-600 select-none" aria-hidden="true">·</span>
+                                <span class="text-slate-600 dark:text-slate-300">{{ run.get_backup_type_display }}</span>
+                                {% else %}
+                                <span class="font-medium">Restore #{{ run.pk }}</span>
+                                {% endif %}
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                    {% if run.status == 'success' %}bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300
+                                    {% elif run.status == 'error' %}bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300
+                                    {% elif run.status == 'running' %}bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300
+                                    {% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300{% endif %}">
+                                    {{ run.get_status_display }}
+                                </span>
+                                <span class="text-slate-300 dark:text-slate-600 select-none" aria-hidden="true">·</span>
+                                {% if operation.initiated_by_display %}
+                                <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ operation.initiated_by_display }}</span>
+                                {% else %}
+                                <span class="text-xs font-medium text-violet-600 dark:text-violet-400">system</span>
+                                {% endif %}
+                                {% if operation.kind == "backup" and run.comment %}
+                                <span class="text-slate-300 dark:text-slate-600 select-none" aria-hidden="true">·</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 italic">{{ run.comment }}</span>
+                                {% endif %}
+                                {% if operation.kind == "backup" and operation.backup_files_deleted %}
+                                <span class="text-xs text-amber-700 dark:text-amber-300">файлы удалены</span>
+                                {% endif %}
+                                {% if run.error_message %}
+                                <span class="text-xs text-red-600 dark:text-red-400">ошибка</span>
+                                {% endif %}
+                                <svg class="ml-auto h-4 w-4 flex-shrink-0 text-slate-400 transition-transform group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </summary>
+                        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <div><span class="text-slate-400 dark:text-slate-500">Начало:</span> {{ run.started_at|date:"Y-m-d H:i:s"|default:"—" }}</div>
+                                <div><span class="text-slate-400 dark:text-slate-500">Завершение:</span> {{ run.finished_at|date:"Y-m-d H:i:s"|default:"—" }}</div>
+                            </div>
+                            {% if operation.kind == "backup" %}
+                            <div><span class="text-slate-400 dark:text-slate-500">Источник:</span> {{ operation.source_display }}</div>
+                            {% endif %}
+                            {% if operation.kind == "restore" %}
+                            <div>
+                                <span class="text-slate-400 dark:text-slate-500">Full backup:</span>
+                                {% if operation.full_source_backup %}
+                                #{{ operation.full_source_backup.pk }}
+                                {% if operation.full_source_comment %} — <span class="italic">{{ operation.full_source_comment }}</span>{% endif %}
+                                {% if operation.full_source_files_deleted %} <span class="text-amber-700 dark:text-amber-300">(файлы удалены)</span>{% endif %}
+                                {% else %}
+                                <span class="text-slate-400 italic">{{ run.full_manifest_path }}</span>
+                                {% endif %}
+                            </div>
+                            {% if run.incremental_manifest_path %}
+                            <div>
+                                <span class="text-slate-400 dark:text-slate-500">Incremental backup:</span>
+                                {% if operation.incr_source_backup %}
+                                #{{ operation.incr_source_backup.pk }}
+                                {% if operation.incr_source_comment %} — <span class="italic">{{ operation.incr_source_comment }}</span>{% endif %}
+                                {% if operation.incr_source_files_deleted %} <span class="text-amber-700 dark:text-amber-300">(файлы удалены)</span>{% endif %}
+                                {% else %}
+                                <span class="text-slate-400 italic">{{ run.incremental_manifest_path }}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if operation.pre_restore_backup %}
+                            <div>
+                                <span class="text-slate-400 dark:text-slate-500">Pre-restore backup:</span>
+                                #{{ operation.pre_restore_backup.pk }} ({{ operation.pre_restore_backup.get_status_display }})
+                                {% if operation.pre_restore_files_deleted %} <span class="text-amber-700 dark:text-amber-300">(файлы удалены)</span>{% endif %}
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            {% if run.error_message %}
+                            <div class="text-red-600 dark:text-red-400">{{ run.error_message }}</div>
+                            {% endif %}
+                        </div>
+                    </details>
+                </div>
+                {% endwith %}
+                {% empty %}
+                <div class="px-6 py-5 text-sm text-slate-500 dark:text-slate-400">Операций пока нет.</div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 class="text-base font-semibold">Последние ошибки импорта</h2>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for log in import_errors %}
+            <div class="px-6 py-4 text-sm">
+                {{ log.created_at|date:"Y-m-d H:i" }} — {{ log.filename }} — {{ log.get_status_display }}
+                <span class="text-xs text-slate-500 dark:text-slate-400">ошибок: {{ log.error_rows }}, дублей: {{ log.duplicate_rows }}</span>
+            </div>
+            {% empty %}
+            <div class="px-6 py-5 text-sm text-slate-500 dark:text-slate-400">Ошибок импорта нет.</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

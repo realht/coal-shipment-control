@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Настройки полей — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Настройки полей форм и таблиц{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl space-y-5">
+
+    <!-- Entity switcher -->
+    <div class="flex gap-2">
+        <a href="?entity=auto_shipment"
+           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors
+               {% if entity == 'auto_shipment' %}bg-brand-600 text-white{% else %}bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
+            Автоотгрузки
+        </a>
+        <a href="?entity=rail_shipment"
+           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors
+               {% if entity == 'rail_shipment' %}bg-brand-600 text-white{% else %}bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
+            ЖД-отгрузки
+        </a>
+    </div>
+
+    <form method="post" id="field-settings-form">
+        {% csrf_token %}
+        <input type="hidden" name="entity" value="{{ entity }}">
+        <input type="hidden" name="field_order" id="field-order-input">
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="overflow-x-auto">
+            <div class="min-w-[900px]">
+            <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+                <div class="grid field-settings-grid gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <div></div>
+                    <div>Поле</div>
+                    <div class="text-center">В форме</div>
+                    <div class="text-center">Обязат.</div>
+                    <div class="text-center">В табл.</div>
+                    <div>Секция</div>
+                    <div class="text-center">Фильтр</div>
+                    <div>Тип фильтра</div>
+                    <div class="text-center">Сортир.</div>
+                    <div class="text-center">Sticky</div>
+                    <div>Пресеты</div>
+                </div>
+            </div>
+
+            <div class="divide-y divide-slate-100 dark:divide-slate-700" id="sortable-rows">
+                {% for fs in fields %}
+                <div class="grid field-settings-grid gap-2 items-center px-5 py-3 transition-colors
+                    {% if fs.is_system %}bg-slate-50/60 dark:bg-slate-700/20{% endif %}"
+                    draggable="true"
+                    data-field="{{ fs.field_name }}">
+
+                    <!-- Drag handle -->
+                    <div class="flex justify-center">
+                        <span class="drag-handle cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 select-none text-lg leading-none"
+                              title="Перетащите для изменения порядка">⠿</span>
+                    </div>
+
+                    <!-- Название + технический ключ -->
+                    <div>
+                        <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                            {% if fs.label %}{{ fs.label }}{% else %}{{ fs.field_name }}{% endif %}
+                        </span>
+                        {% if fs.label %}
+                        <div class="text-xs font-mono text-slate-400 dark:text-slate-500">{{ fs.field_name }}</div>
+                        {% endif %}
+                        {% if fs.is_system %}
+                        <span class="text-xs text-amber-500 dark:text-amber-400">системное</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Видимо в форме -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="visible_{{ fs.field_name }}"
+                               {% if fs.visible %}checked{% endif %}
+                               {% if fs.is_system %}disabled{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Обязательное -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="required_{{ fs.field_name }}"
+                               {% if fs.required %}checked{% endif %}
+                               {% if fs.is_system %}disabled{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- В таблице -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="show_in_list_{{ fs.field_name }}"
+                               {% if fs.show_in_list %}checked{% endif %}
+                               {% if fs.is_system %}disabled{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Секция -->
+                    <div>
+                        <select name="section_{{ fs.field_name }}"
+                                {% if fs.is_system %}disabled{% endif %}
+                                class="text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full">
+                            <option value="main" {% if fs.section == SECTION_MAIN %}selected{% endif %}>Основные</option>
+                            <option value="advanced" {% if fs.section == SECTION_ADVANCED %}selected{% endif %}>Дополнит.</option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="allow_filter_{{ fs.field_name }}"
+                               {% if fs.allow_filter %}checked{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Тип фильтра -->
+                    <div>
+                        <select name="filter_type_{{ fs.field_name }}"
+                                class="text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full">
+                            <option value="none" {% if fs.filter_type == 'none' %}selected{% endif %}>—</option>
+                            <option value="value" {% if fs.filter_type == 'value' %}selected{% endif %}>Значение</option>
+                            <option value="date" {% if fs.filter_type == 'date' %}selected{% endif %}>Дата</option>
+                            <option value="number" {% if fs.filter_type == 'number' %}selected{% endif %}>Число</option>
+                            <option value="text" {% if fs.filter_type == 'text' %}selected{% endif %}>Текст</option>
+                        </select>
+                    </div>
+
+                    <!-- Сортировка -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="allow_sort_{{ fs.field_name }}"
+                               {% if fs.allow_sort %}checked{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Sticky -->
+                    <div class="flex justify-center">
+                        <input type="checkbox" name="sticky_col_{{ fs.field_name }}"
+                               {% if fs.sticky_col %}checked{% endif %}
+                               class="w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Пресеты -->
+                    <div class="flex flex-wrap gap-x-2 gap-y-1">
+                        {% for p in preset_defs %}{% if p.name != 'full' %}
+                        <label class="flex items-center gap-1 cursor-pointer" title="{{ p.label }}">
+                            <input type="checkbox" name="preset_{{ p.name }}_{{ fs.field_name }}"
+                                   {% if p.name in fs.preset_membership %}checked{% endif %}
+                                   class="w-3.5 h-3.5 rounded text-brand-600 border-slate-300 dark:border-slate-600 focus:ring-brand-500">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ p.label }}</span>
+                        </label>
+                        {% endif %}{% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+            <p class="text-xs text-slate-400 dark:text-slate-500">
+                Перетащите строки для изменения порядка отображения полей
+            </p>
+            <button type="submit"
+                    class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Сохранить
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'js/field_settings.js' %}"></script>
+{% endblock %}

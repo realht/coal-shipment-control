@@ -1,0 +1,59 @@
+{% load coal_tags %}
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-700">
+    <span class="text-sm text-slate-500 dark:text-slate-400">
+        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+    </span>
+
+    <div class="flex items-center gap-1 flex-wrap">
+        {% if page_obj.has_previous %}
+        <a href="{% page_url 1 %}"
+           class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="В начало">«</a>
+        <a href="{% page_url page_obj.previous_page_number %}"
+           class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">‹ Назад</a>
+        {% else %}
+        <span class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed">«</span>
+        <span class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed">‹ Назад</span>
+        {% endif %}
+
+        {% for p in pages %}
+            {% if p == None %}
+            <span class="px-2 py-1.5 text-xs text-slate-400 dark:text-slate-500">…</span>
+            {% elif p == page_obj.number %}
+            <span class="px-2.5 py-1.5 text-xs rounded-lg bg-brand-600 text-white font-medium border border-brand-600">{{ p }}</span>
+            {% else %}
+            <a href="{% page_url p %}"
+               class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="{% page_url page_obj.next_page_number %}"
+           class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">Вперёд ›</a>
+        <a href="{% page_url page_obj.paginator.num_pages %}"
+           class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="В конец">»</a>
+        {% else %}
+        <span class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed">Вперёд ›</span>
+        <span class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed">»</span>
+        {% endif %}
+    </div>
+
+    <form method="get" class="flex items-center gap-2">
+        {% if request %}
+            {% for key, values in request.GET.lists %}
+                {% if key != 'page' %}
+                    {% for val in values %}
+                    <input type="hidden" name="{{ key }}" value="{{ val }}">
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <label class="text-xs text-slate-500 dark:text-slate-400">Перейти:</label>
+        <input type="number" name="page" min="1" max="{{ page_obj.paginator.num_pages }}"
+               class="w-16 px-2 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400"
+               placeholder="{{ page_obj.number }}">
+        <button type="submit"
+                class="px-2.5 py-1 text-xs font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">OK</button>
+    </form>
+</div>
+{% endif %}

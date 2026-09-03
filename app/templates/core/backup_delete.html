@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Удаление backup — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Удаление backup{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-8">
+    <div>
+        <a href="{% url 'core:system_status' %}" class="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+            ← Вернуться в систему
+        </a>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700 dark:text-slate-200">Preview удаления</h2>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    {{ preview.entry.created_at }} — {{ preview.entry.backup_type }} — {{ preview.entry.key }}
+                </p>
+                {% if preview.entry.comment %}
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ preview.entry.comment }}</p>
+                {% endif %}
+            </div>
+            {% if system_state.mode != MODE_ADMIN_ONLY %}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                Удаление доступно только в режиме профилактики.
+            </div>
+            {% endif %}
+        </div>
+
+        {% if preview.blockers %}
+        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+            <div class="font-semibold">Удаление заблокировано</div>
+            <ul class="mt-2 list-disc pl-5 space-y-1">
+                {% for blocker in preview.blockers %}
+                <li>{{ blocker }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div>
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Backup, которые будут затронуты</h3>
+            <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400">
+                    <tr><th class="text-left px-4 py-3">Дата</th><th class="text-left px-4 py-3">Тип</th><th class="text-left px-4 py-3">Manifest</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for entry in preview.entries_to_delete %}
+                    <tr>
+                        <td class="px-4 py-3">{{ entry.created_at }}</td>
+                        <td class="px-4 py-3">{{ entry.backup_type }}</td>
+                        <td class="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 break-all">{{ entry.manifest_path }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Файлы</h3>
+            <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400">
+                    <tr><th class="text-left px-4 py-3">Роль</th><th class="text-left px-4 py-3">Путь</th><th class="text-left px-4 py-3">Статус</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for file in preview.files %}
+                    <tr>
+                        <td class="px-4 py-3">{{ file.role }}</td>
+                        <td class="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 break-all">{{ file.path }}</td>
+                        <td class="px-4 py-3">
+                            {% if not file.safe %}
+                            <span class="text-red-600 dark:text-red-400">вне BACKUP_DIR</span>
+                            {% elif file.exists %}
+                            {{ file.size|filesizeformat }}
+                            {% else %}
+                            <span class="text-amber-700 dark:text-amber-300">уже отсутствует</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="px-4 py-5 text-slate-500">Файлы не найдены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <label class="block max-w-sm">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Подтверждение</span>
+                <input type="text" name="confirm_text" placeholder="УДАЛИТЬ"
+                       class="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
+            </label>
+            <button type="submit"
+                    {% if not preview.can_delete or system_state.mode != MODE_ADMIN_ONLY %}disabled{% endif %}
+                    class="inline-flex w-auto items-center justify-center px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
+                Удалить backup
+            </button>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+-- Acceptance-only identities. Root remains confined to MariaDB bootstrap.
+CREATE DATABASE IF NOT EXISTS coal_smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS test_coal_smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'coal_smoke_app'@'%' IDENTIFIED BY 'coal-smoke-app-password-001';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP, REFERENCES
+    ON coal_smoke.* TO 'coal_smoke_app'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP, REFERENCES
+    ON test_coal_smoke.* TO 'coal_smoke_app'@'%';
+FLUSH PRIVILEGES;

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load static coal_tags %}
+
+{% block title %}Автоотгрузки — Учёт отгрузок угля{% endblock %}
+{% block page_title %}Автоотгрузки{% endblock %}
+
+{% block content %}
+<!-- Toolbar -->
+<div class="flex flex-wrap items-end gap-3 mb-4">
+    <form method="get" id="filter-form" class="flex flex-wrap items-end gap-2 flex-1">
+        {% for field, values in active_filters.items %}
+            {% for v in values %}
+            <input type="hidden" name="f_{{ field }}" value="{{ v }}">
+            {% endfor %}
+        {% endfor %}
+        {% for field, rng in active_range_filters.items %}
+            {% if rng.from %}<input type="hidden" name="f_{{ field }}_from" value="{{ rng.from }}">{% endif %}
+            {% if rng.to %}<input type="hidden" name="f_{{ field }}_to" value="{{ rng.to }}">{% endif %}
+        {% endfor %}
+        {% for field, value in active_text_filters.items %}
+            <input type="hidden" name="f_{{ field }}" value="{{ value }}">
+        {% endfor %}
+        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+        {% if dir %}<input type="hidden" name="dir" value="{{ dir }}">{% endif %}
+        <div class="relative">
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" name="q" value="{{ q }}" placeholder="Поиск..."
+                   class="h-10 pl-9 pr-3 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400 w-52">
+        </div>
+        <input type="date" name="date_from" value="{{ date_from }}" aria-label="Дата отгрузки: с"
+               class="h-10 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+        <input type="date" name="date_to" value="{{ date_to }}" aria-label="Дата отгрузки: по"
+               class="h-10 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-400">
+        <button type="submit"
+                class="inline-flex h-10 items-center px-4 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">
+            Найти
+        </button>
+        {% if q or date_from or date_to or active_filters or active_range_filters or active_text_filters %}
+        <a href="{% url 'auto:list' %}"
+           class="inline-flex h-10 items-center px-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors">
+            Сбросить
+        </a>
+        {% endif %}
+    </form>
+
+    <div class="flex items-center gap-2">
+        <div class="flex items-center rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden text-xs">
+            <button type="button" data-density-btn="comfortable"
+                    class="px-2.5 py-1.5 font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Обычный режим">
+                ▤
+            </button>
+            <button type="button" data-density-btn="compact"
+                    class="px-2.5 py-1.5 font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-l border-slate-200 dark:border-slate-600 transition-colors" title="Компактный режим">
+                ☰
+            </button>
+        </div>
+        {% if can_export %}
+        <a id="full-export-link" href="{% url 'auto:export' %}{% querystring page=None %}"
+           class="flex h-10 items-center gap-1.5 px-4 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Excel
+        </a>
+        <form id="export-selected-form" method="post" action="{% url 'auto:export_selected' %}{% querystring page=None %}" class="hidden">
+            {% csrf_token %}
+        </form>
+        <button type="button" id="partial-export-toggle" data-selection-entity="auto"
+                class="flex h-10 items-center gap-1.5 px-4 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Частичный экспорт
+        </button>
+        <button type="button" id="export-selected-btn" disabled
+                class="hidden h-10 items-center gap-1.5 px-4 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span id="export-selected-label">Выбранные</span>
+        </button>
+        {% endif %}
+        {% if can_delete %}
+        <a href="{% url 'auto:deleted' %}"
+           class="flex h-10 items-center gap-1.5 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors">
+            Удалённые
+        </a>
+        {% endif %}
+        {% if can_add %}
+        <a href="{% url 'auto:create' %}"
+           class="flex h-10 items-center gap-1.5 px-4 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Добавить
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Active filters panel -->
+{% if active_filters or active_range_filters or active_text_filters %}
+<div class="flex flex-wrap gap-2 mb-3">
+    {% for field, values in active_filters.items %}
+        {% for v in values %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700">
+            {{ v }}
+            <button type="button" data-remove-field="f_{{ field }}" data-remove-value="{{ v }}"
+               class="ml-0.5 hover:text-brand-900 dark:hover:text-brand-100 leading-none">✕</button>
+        </span>
+        {% endfor %}
+    {% endfor %}
+    {% for field, rng in active_range_filters.items %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700">
+            {{ field_label_map|get_item:field|default:field }}{% if rng.from %}: от {{ rng.from }}{% endif %}{% if rng.to %} до {{ rng.to }}{% endif %}
+            {% if rng.from %}<button type="button" data-remove-field="f_{{ field }}_from" class="hover:text-brand-900 dark:hover:text-brand-100 leading-none">✕</button>{% endif %}
+            {% if rng.to %}<button type="button" data-remove-field="f_{{ field }}_to" class="hover:text-brand-900 dark:hover:text-brand-100 leading-none">✕</button>{% endif %}
+        </span>
+    {% endfor %}
+    {% for field, value in active_text_filters.items %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700">
+            {{ field_label_map|get_item:field|default:field }}: {{ value }}
+            <button type="button" data-remove-field="f_{{ field }}" class="hover:text-brand-900 dark:hover:text-brand-100 leading-none">✕</button>
+        </span>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Table -->
+<div class="flex flex-wrap items-center gap-2 mb-2">
+    <div class="flex items-center gap-1 flex-wrap"
+         data-presets-entity="auto_shipment"
+         data-presets-script-id="auto-table-presets">
+        <span class="text-xs text-slate-500 dark:text-slate-400 mr-1">Вид:</span>
+        {% for preset in table_presets %}
+        <button type="button" data-preset-btn="{{ preset.name }}"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            {{ preset.label }}
+        </button>
+        {% endfor %}
+    </div>
+    {{ table_presets|json_script:"auto-table-presets" }}
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+     data-table-scroll
+     data-filter-query-safe-limit="{{ filter_query_safe_limit }}">
+    {% if shipments %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" data-density-table data-sticky-table="{{ table_sticky_fields }}">
+            <thead>
+                <tr class="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                    <th class="px-4 py-3 w-8 hidden" data-partial-selection>
+                        <input type="checkbox" id="select-all-rows" class="rounded border-slate-300 dark:border-slate-600 text-brand-600" title="Выбрать все на странице">
+                    </th>
+                    {% for col in list_columns %}
+                        {% if col.field_name in filter_config %}
+                            {% include "partials/filter_th.html" with label=col.label field=col.field_name filter_type=filter_config|dict_get:col.field_name filter_urls=filter_urls active_filters=active_filters active_range_filters=active_range_filters current_sort=sort current_dir=dir q=q date_from=date_from date_to=date_to %}
+                        {% elif col.field_name in sortable_fields %}
+                            {% include "partials/sort_only_th.html" with label=col.label field=col.field_name current_sort=sort current_dir=dir q=q date_from=date_from date_to=date_to active_filters=active_filters %}
+                        {% else %}
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide" data-field="{{ col.field_name }}">
+                                <span class="whitespace-normal leading-tight inline-block max-w-[6rem]">{{ col.label }}</span>
+                            </th>
+                        {% endif %}
+                    {% endfor %}
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide" title="Документы">Докум.</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for s in shipments %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+                    <td class="px-4 py-3 w-8 hidden" data-partial-selection>
+                        <input type="checkbox" aria-label="Выбрать автоотгрузку {{ s.pk }}" class="row-checkbox rounded border-slate-300 dark:border-slate-600 text-brand-600" value="{{ s.pk }}">
+                    </td>
+                    {% for col in list_columns %}
+                    <td data-field="{{ col.field_name }}" class="px-4 py-3
+                        {% if col.field_name == 'shipment_date' %}text-slate-500 dark:text-slate-400 whitespace-nowrap
+                        {% elif col.field_name == 'quantity' %}text-right font-mono text-slate-700 dark:text-slate-200
+                        {% else %}text-slate-600 dark:text-slate-300{% endif %}">
+                        {% if col.field_name == 'shipment_date' %}
+                            {{ s.shipment_date }}
+                        {% elif col.field_name == 'customer_object' %}
+                            <a href="{% url 'auto:detail' s.pk %}" class="font-medium text-brand-600 dark:text-brand-400 hover:underline">{{ s.customer_object }}</a>
+                        {% elif col.field_name == 'coal_grade' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ s.coal_grade }}</span>
+                        {% elif col.field_name == 'ttn_number' %}
+                            {% if s.ttn_number %}
+                            <span class="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                {{ s.ttn_number }}
+                            </span>
+                            {% else %}<span class="text-slate-400 dark:text-slate-500">—</span>{% endif %}
+                        {% else %}
+                            {{ s|get_field:col.field_name|default:"—" }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="px-4 py-3 text-center">
+                        {% if s.has_docs %}
+                        <svg class="w-4 h-4 text-brand-500 dark:text-brand-400 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="Есть документы"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <a href="{% url 'auto:detail' s.pk %}" title="Просмотр"
+                               class="p-1.5 rounded-md text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </a>
+                            {% if can_change %}
+                            <a href="{% url 'auto:update' s.pk %}" title="Изменить"
+                               class="p-1.5 rounded-md text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </a>
+                            {% endif %}
+                            {% if can_delete %}
+                            <a href="{% url 'auto:delete' s.pk %}?next={{ request.get_full_path|urlencode }}" title="Удалить"
+                               class="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+    {% pagination page_obj %}
+    {% endif %}
+
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
+        <svg class="w-12 h-12 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-sm">Записи не найдены</p>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{% static 'js/column_filters.js' %}"></script>
+<script src="{% static 'js/table_scroll.js' %}"></script>
+<script src="{% static 'js/table_density.js' %}"></script>
+<script src="{% static 'js/table_sticky.js' %}"></script>
+<script src="{% static 'js/table_presets.js' %}"></script>
+{% endblock %}

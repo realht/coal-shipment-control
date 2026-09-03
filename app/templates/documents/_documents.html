@@ -1,0 +1,54 @@
+{% load static %}
+<div class="flex items-center justify-between mb-3">
+    <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Документы</h2>
+    {% if can_upload %}
+    <a href="{% url 'documents:upload' shipment_type shipment.pk %}"
+       class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Прикрепить
+    </a>
+    {% endif %}
+</div>
+
+{% if documents %}
+<div class="divide-y divide-slate-100 dark:divide-slate-700">
+    {% for doc in documents %}
+    <div class="flex items-center gap-3 py-2.5">
+        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{{ doc.original_file_name }}</div>
+            <div class="text-xs text-slate-400 dark:text-slate-500">
+                {{ doc.get_document_type_display }} · {{ doc.file_size|filesizeformat }} · {{ doc.uploaded_at|date:"d.m.Y H:i" }}
+                {% if doc.uploaded_by %} · {{ doc.uploaded_by }}{% endif %}
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            {% if doc.mime_type in "application/pdf,image/jpeg,image/png,image/webp,image/gif" %}
+            <a href="{% url 'documents:view' doc.pk %}" target="_blank" rel="noopener"
+               class="px-2.5 py-1 text-xs font-medium text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/30 rounded-md transition-colors">
+                Открыть
+            </a>
+            {% endif %}
+            <a href="{% url 'documents:download' doc.pk %}"
+               class="px-2.5 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md transition-colors">
+                Скачать
+            </a>
+            {% if can_change_doc %}
+            <a href="{% url 'documents:edit' doc.pk %}"
+               class="px-2.5 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md transition-colors">
+                Изменить
+            </a>
+            {% endif %}
+            {% if can_delete_doc %}
+            <a href="{% url 'documents:delete' doc.pk %}"
+               class="px-2.5 py-1 text-xs font-medium text-red-500 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors">
+                Удалить
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-sm text-slate-400 dark:text-slate-500 py-2">Документы не прикреплены.</p>
+{% endif %}

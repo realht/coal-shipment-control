@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система на обслуживании</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+</head>
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex items-center justify-center px-4">
+    <main class="w-full max-w-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 space-y-3">
+        <h1 class="text-lg font-semibold">Система на обслуживании</h1>
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+            Сейчас включён режим: {{ system_state.get_mode_display }}.
+        </p>
+        {% if system_state.reason %}
+        <p class="text-sm text-slate-500 dark:text-slate-400">{{ system_state.reason }}</p>
+        {% endif %}
+        <div class="pt-2 space-y-3">
+            {% if request.user.is_authenticated and not user_can_view %}
+            <p class="text-sm text-red-700 dark:text-red-300">
+                Вы вошли как {{ request.user.get_full_name|default:request.user.username }}, но у аккаунта нет прав администратора.
+            </p>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">
+                    Выйти и войти как администратор
+                </button>
+            </form>
+            {% elif user_can_view and system_state.mode == "restore_running" %}
+            <a href="{% url 'core:system_status' %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">Открыть состояние восстановления</a>
+            {% else %}
+            <a href="{% url 'login' %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline">Войти как администратор</a>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
