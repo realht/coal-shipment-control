@@ -31,13 +31,12 @@ POSIX_ROOT_FILES = frozenset({
     "tailwind.config.js",
 })
 
-CUSTOMER_DOCS = frozenset({
+RUNTIME_DOCS = frozenset({
     "docs/deployment_env.md",
     "docs/wiki/architecture.md",
-    "docs/wiki/customer_deployment_checklist.md",
-    "docs/wiki/customer_acceptance_record.md",
-    "docs/wiki/operator_checklist.md",
-    "docs/wiki/runbook.md",
+    "docs/wiki/deployment.md",
+    "docs/wiki/acceptance.md",
+    "docs/wiki/operations.md",
 })
 
 EXCLUDED_APP_EXACT = frozenset({
@@ -193,7 +192,7 @@ def should_include(path: Path, root: Path) -> bool:
     if top == "docs":
         if len(parts) >= 2 and parts[1] == "audit":
             return False
-        return posix in CUSTOMER_DOCS
+        return posix in RUNTIME_DOCS
 
     if top == "scripts":
         return False

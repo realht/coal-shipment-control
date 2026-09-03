@@ -101,10 +101,9 @@ class EvidenceTests(unittest.TestCase):
             "app/requirements.txt": "Django==5.2.15\n",
             "docs/deployment_env.md": "# Environment\n",
             "docs/wiki/architecture.md": "# Architecture\n",
-            "docs/wiki/customer_deployment_checklist.md": "# Deploy\n",
-            "docs/wiki/customer_acceptance_record.md": "# Acceptance\n",
-            "docs/wiki/operator_checklist.md": "# Operator\n",
-            "docs/wiki/runbook.md": "# Runbook\n",
+            "docs/wiki/deployment.md": "# Deploy\n",
+            "docs/wiki/acceptance.md": "# Acceptance\n",
+            "docs/wiki/operations.md": "# Operations\n",
         }
         for rel, content in files.items():
             path = root / rel

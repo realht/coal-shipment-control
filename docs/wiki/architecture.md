@@ -1,6 +1,38 @@
-# Runtime architecture
+# Архитектура
 
-The application is a Django web service with MariaDB in a production-like setup
-and filesystem storage for uploaded documents. The public demo uses SQLite only.
-The app container exposes HTTP behind a reverse proxy; a separate scheduler
-process executes queued backup and restore operations.
+Система построена как Django-монолит с серверным рендерингом шаблонов. Такой
+формат подходит для внутреннего рабочего инструмента: единый код, простая
+поставка и прозрачная модель прав доступа.
+
+```mermaid
+flowchart TD
+    U[Пользователи] --> UI[Web UI: Django templates + Tailwind]
+    UI --> APP[Django: бизнес-логика и RBAC]
+    APP --> DB[(MariaDB\nSQLite в demo)]
+    APP --> XLSX[Импорт / экспорт XLSX]
+    APP --> FILES[Файловое хранилище документов]
+    APP --> AUDIT[Журнал аудита]
+    S[Scheduler] --> OPS[Backup / restore]
+    OPS --> DB
+    OPS --> FILES
+```
+
+## Модули приложения
+
+- `shipments_auto` и `shipments_rail` — учёт двух типов отгрузок, фильтрация,
+  экспорт и soft delete;
+- `imports` — предварительная проверка XLSX, диагностика строк и подтверждённый
+  импорт;
+- `documents` — загрузка и выдача файлов с проверками доступа;
+- `accounts` — пользователи и роли;
+- `audit` — неизменяемая история бизнес-операций;
+- `catalogs` — управляемые справочники и настройки полей;
+- `core` — dashboard, общие сервисы, системные операции и health endpoints.
+
+## Границы окружений
+
+Публичный Docker demo использует SQLite и синтетические данные. Целевая
+production-like конфигурация предполагает MariaDB, отдельное приватное
+хранилище для загрузок и резервных копий, а также HTTPS за reverse proxy.
+Это не заявление о готовом production-развёртывании: проверки целевого
+окружения выполняются отдельно.

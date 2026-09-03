@@ -25,10 +25,9 @@ Customer handoff docs allowlist:
 - `RELEASE_VALIDATION.md`
 - `docs/deployment_env.md`
 - `docs/wiki/architecture.md`
-- `docs/wiki/customer_acceptance_record.md`
-- `docs/wiki/customer_deployment_checklist.md`
-- `docs/wiki/operator_checklist.md`
-- `docs/wiki/runbook.md`
+- `docs/wiki/acceptance.md`
+- `docs/wiki/deployment.md`
+- `docs/wiki/operations.md`
 
 Developer/source docs such as `README.md`, `docs/wiki/release_validation_checklist.md`,
 `docs/wiki/production_deployment_acceptance_checklist.md`, backlog, changelog, decisions,

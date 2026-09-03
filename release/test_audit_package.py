@@ -257,14 +257,14 @@ class AuditPackageTests(unittest.TestCase):
             )
             self._write(root / "scripts" / "check-css-drift.mjs", "console.log('dev check')\n")
             self._write(
-                root / "docs" / "wiki" / "customer_deployment_checklist.md",
+                root / "docs" / "wiki" / "deployment.md",
                 "# Customer checklist\n\ndocker compose ps\n",
             )
             self._write(
                 root / "docs" / "wiki" / "production_deployment_acceptance_checklist.md",
                 "# Developer checklist\n\npython release/check.py check\npytest\n",
             )
-            self._write(root / "docs" / "wiki" / "runbook.md", "# Runbook\n")
+            self._write(root / "docs" / "wiki" / "operations.md", "# Operations\n")
             self._write(root / "docs" / "wiki" / "architecture.md", "# Architecture\n")
             self._write(
                 root / "docs" / "deployment_env.md",
@@ -299,7 +299,7 @@ class AuditPackageTests(unittest.TestCase):
                 "FILTER_QUERY_SAFE_LIMIT",
                 (target / "docs" / "deployment_env.md").read_text(encoding="utf-8"),
             )
-            self.assertTrue((target / "docs" / "wiki" / "customer_deployment_checklist.md").is_file())
+            self.assertTrue((target / "docs" / "wiki" / "deployment.md").is_file())
             self.assertFalse(
                 (target / "docs" / "wiki" / "production_deployment_acceptance_checklist.md").exists()
             )
@@ -328,8 +328,8 @@ class AuditPackageTests(unittest.TestCase):
             self._write(root / "release" / "check.py", "")
             self._write(root / "docs" / "audit" / "finding.md", "")
             self._write(root / "docs" / "wiki" / "sessions" / "note.md", "")
-            self._write(root / "docs" / "wiki" / "customer_deployment_checklist.md", "# Customer checklist\n")
-            self._write(root / "docs" / "wiki" / "runbook.md", "# Runbook\n")
+            self._write(root / "docs" / "wiki" / "deployment.md", "# Deployment\n")
+            self._write(root / "docs" / "wiki" / "operations.md", "# Operations\n")
             self._write(root / "docs" / "wiki" / "architecture.md", "# Architecture\n")
             self._write(root / "docs" / "deployment_env.md", "# Env\n\nGUNICORN_LIMIT_REQUEST_LINE\n")
             self._write(root / "uploads" / "customer.pdf", "x")
@@ -403,8 +403,8 @@ class AuditPackageTests(unittest.TestCase):
             self._write(root / "package-lock.json", "{}\n")
             self._write(root / "tailwind.config.js", "module.exports = {}\n")
             self._write(root / "RELEASE_VALIDATION.md", "# Release validation\n")
-            self._write(root / "docs" / "wiki" / "customer_deployment_checklist.md", "# Customer checklist\n")
-            self._write(root / "docs" / "wiki" / "runbook.md", "# Runbook\n")
+            self._write(root / "docs" / "wiki" / "deployment.md", "# Deployment\n")
+            self._write(root / "docs" / "wiki" / "operations.md", "# Operations\n")
             self._write(root / "docs" / "wiki" / "architecture.md", "# Architecture\n")
             self._write(root / "docs" / "deployment_env.md", "# Env\n")
 

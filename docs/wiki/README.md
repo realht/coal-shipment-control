@@ -1,5 +1,16 @@
-# Runtime documentation
+# Техническая документация
 
-These short public documents support the release packaging code kept in this
-showcase. They intentionally omit client infrastructure, operations history and
-production evidence. The portfolio entry point is the root `README.md`.
+Эта документация описывает публичную showcase-копию системы. Она объясняет
+устройство решения и ключевые инженерные решения, но не содержит данных
+заказчика, адресов инфраструктуры, учётных данных или внутренней истории работ.
+
+| Раздел | Содержание |
+|---|---|
+| [Архитектура](architecture.md) | Компоненты системы, Django-приложения и основные потоки данных. |
+| [Модель данных](data-model.md) | Отгрузки, документы, справочники и аудит. |
+| [Безопасность](security.md) | RBAC, файлы, импорт XLSX, аудит и конфигурация. |
+| [Качество](quality.md) | Автотесты, линтинг, CI и границы верификации. |
+| [Эксплуатация](operations.md) | Demo-запуск, health endpoints, backup/restore и ограничения MVP. |
+
+Для первого знакомства используйте [корневой README](../../README.md): в нём
+есть скриншоты, быстрый запуск и схема компонентов.
