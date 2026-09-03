@@ -1,7 +1,7 @@
-# Coal Shipments — portfolio showcase
+# Coal Shipment Control
 
-> Внутренняя веб-система учёта автомобильных и железнодорожных отгрузок. Публичная
-> витрина подготовлена на синтетических данных и не содержит данных заказчика.
+> Веб-система учёта автомобильных и железнодорожных отгрузок. Публичная
+> demo-копия подготовлена на синтетических данных и не содержит данных заказчика.
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white)
