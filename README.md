@@ -42,6 +42,24 @@
 Python 3.13, Django 5.2 LTS, MariaDB 10, SQLite для разработки, Docker, gunicorn,
 openpyxl, Tailwind CSS, pytest, Playwright, Ruff.
 
+## Архитектура
+
+```mermaid
+flowchart TD
+    U[Пользователи] --> UI[Web-интерфейс<br/>Django templates + Tailwind]
+    UI --> APP[Django: бизнес-логика и RBAC]
+    APP --> DB[(MariaDB<br/>SQLite в demo)]
+    APP --> XLSX[Импорт и экспорт XLSX]
+    APP --> FILES[Защищённое файловое хранилище<br/>документы]
+    APP --> AUDIT[Журнал аудита]
+    S[Scheduler] --> OPS[Регламентные операции<br/>backup / restore]
+    OPS --> DB
+    OPS --> FILES
+```
+
+Диаграмма отражает целевую архитектуру; в публичном demo используются SQLite и
+синтетические данные. Внешних LLM, API и webhook-интеграций в продукте нет.
+
 ## Быстрый запуск demo
 
 Для просмотра интерфейса не нужны внешняя БД, ключи или реальные документы.
